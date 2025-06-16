@@ -19,7 +19,7 @@ namespace Mcp.ImageOptimizer.Tools.Tests
         }
 
         [Fact]
-        public async Task ValidateMedataTool_Dimensions()
+        public async Task ValidateMetadataTool_Dimensions()
         {
             int width = 1920; // HD width
             int height = 1080; // HD height
