@@ -28,32 +28,28 @@ namespace Mcp.ImageOptimizer.Tools.Tests
 
             using (var ms = new MemoryStream(imageBytes))
             {
-                await Image.LoadAsync<Rgba32>(ms).ContinueWith(task =>
+                var image = await Image.LoadAsync<Rgba32>(ms);
+                Assert.Equal(width, image.Width);
+                Assert.Equal(height, image.Height);
+
+                if (image.Metadata != null)
                 {
-                    var image = task.Result;
-                    Assert.Equal(width, image.Width);
-                    Assert.Equal(height, image.Height);
+                    var xmlProfile = image.Metadata.XmpProfile;
 
-                    if (image.Metadata != null)
+                    if (image.Metadata?.ExifProfile?.Values != null)
                     {
-                        var xmlProfile = image.Metadata.XmpProfile;
+                        Console.WriteLine("EXIF Metadata:");
 
-
-                        if (image.Metadata?.ExifProfile?.Values != null)
+                        foreach (var prop in image.Metadata?.ExifProfile?.Values)
                         {
-                            Console.WriteLine("EXIF Metadata:");
-
-                            foreach (var prop in image.Metadata?.ExifProfile?.Values)
-                            {
-                                Console.WriteLine($"{prop.Tag}: {prop.GetValue()}");
-                            }
-                        }
-                        else
-                        {
-                            Console.WriteLine("No EXIF Metadata found.");
+                            Console.WriteLine($"{prop.Tag}: {prop.GetValue()}");
                         }
                     }
-                });
+                    else
+                    {
+                        Console.WriteLine("No EXIF Metadata found.");
+                    }
+                }
             }
         }
 
