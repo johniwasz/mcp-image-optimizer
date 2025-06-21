@@ -7,6 +7,10 @@ using SixLabors.ImageSharp.PixelFormats;
 using SixLabors.ImageSharp.Processing;
 using SixLabors.ImageSharp.Drawing.Processing;
 using SixLabors.ImageSharp.Formats.Webp;
+using SixLabors.ImageSharp.Formats.Jpeg;
+using SixLabors.ImageSharp.Formats.Png;
+using SixLabors.ImageSharp.Formats.Gif;
+using SixLabors.ImageSharp.Formats.Bmp;
 
 namespace Mcp.ImageOptimizer.Tools.Tools
 {
@@ -88,6 +92,81 @@ namespace Mcp.ImageOptimizer.Tools.Tools
             }
 
             // Get metadata for the new WebP file
+            return await GetImageMetadata(outputPath);
+        }
+
+        [McpServerTool, Description("Optimize an image in its current format by reducing file size while maintaining quality and return metadata for the optimized file.")]
+        public static async Task<ImageMetadata?> OptimizeImage(
+            [Description("The fully qualified path to an image file.")] string imageFilePath,
+            [Description("Prefix to add to the optimized file name. Default is 'opt-'.")] string prefix = "opt-")
+        {
+            if (!File.Exists(imageFilePath))
+            {
+                throw new FileNotFoundException($"The specified file does not exist: {imageFilePath}");
+            }
+
+            if (string.IsNullOrWhiteSpace(prefix))
+            {
+                throw new ArgumentException("Prefix cannot be null or empty.", nameof(prefix));
+            }
+
+            // Generate output file path with prefix
+            var directory = Path.GetDirectoryName(imageFilePath);
+            var fileName = Path.GetFileName(imageFilePath);
+            var outputPath = Path.Combine(directory ?? "", $"{prefix}{fileName}");
+
+            // Load the image and optimize based on format
+            using (var image = await Image.LoadAsync<Rgba32>(imageFilePath))
+            {
+                var format = await Image.DetectFormatAsync(imageFilePath);
+                
+                if (format == null)
+                {
+                    throw new NotSupportedException($"The image format is not supported: {imageFilePath}");
+                }
+
+                // Save with format-specific optimization
+                if (format.Name.Equals("JPEG", StringComparison.OrdinalIgnoreCase))
+                {
+                    var encoder = new JpegEncoder()
+                    {
+                        Quality = 85 // High quality with good compression
+                    };
+                    await image.SaveAsync(outputPath, encoder);
+                }
+                else if (format.Name.Equals("PNG", StringComparison.OrdinalIgnoreCase))
+                {
+                    var encoder = new PngEncoder()
+                    {
+                        CompressionLevel = PngCompressionLevel.BestCompression
+                    };
+                    await image.SaveAsync(outputPath, encoder);
+                }
+                else if (format.Name.Equals("GIF", StringComparison.OrdinalIgnoreCase))
+                {
+                    var encoder = new GifEncoder();
+                    await image.SaveAsync(outputPath, encoder);
+                }
+                else if (format.Name.Equals("BMP", StringComparison.OrdinalIgnoreCase))
+                {
+                    var encoder = new BmpEncoder();
+                    await image.SaveAsync(outputPath, encoder);
+                }
+                else if (format.Name.Equals("WEBP", StringComparison.OrdinalIgnoreCase))
+                {
+                    var encoder = new WebpEncoder()
+                    {
+                        Quality = 85
+                    };
+                    await image.SaveAsync(outputPath, encoder);
+                }
+                else
+                {
+                    throw new NotSupportedException($"Optimization is not supported for image format: {format.Name}");
+                }
+            }
+
+            // Get metadata for the optimized file
             return await GetImageMetadata(outputPath);
         }
 
