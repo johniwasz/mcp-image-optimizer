@@ -6,6 +6,7 @@ using SixLabors.ImageSharp;
 using SixLabors.ImageSharp.PixelFormats;
 using SixLabors.ImageSharp.Processing;
 using SixLabors.ImageSharp.Drawing.Processing;
+using SixLabors.ImageSharp.Formats.Webp;
 
 namespace Mcp.ImageOptimizer.Tools.Tools
 {
@@ -20,7 +21,10 @@ namespace Mcp.ImageOptimizer.Tools.Tools
 
             if(File.Exists(imageFilePath))
             {
-                imageMetadata = new ImageMetadata();
+                imageMetadata = new ImageMetadata
+                {
+                    FilePath = imageFilePath
+                };
                 using (var image = await Image.LoadAsync<Rgba32>(imageFilePath))
                 {
                     imageMetadata.Width = image.Width;
@@ -50,6 +54,41 @@ namespace Mcp.ImageOptimizer.Tools.Tools
             }
 
             return imageMetadata;
+        }
+
+        [McpServerTool, Description("Convert an image to WebP format with configurable quality and return metadata for the new file.")]
+        public static async Task<ImageMetadata?> ConvertToWebP(
+            [Description("The fully qualified path to an image file.")] string imageFilePath,
+            [Description("Quality level for WebP compression (0-100, where 100 is lossless). Default is 90.")] int quality = 90)
+        {
+            if (!File.Exists(imageFilePath))
+            {
+                throw new FileNotFoundException($"The specified file does not exist: {imageFilePath}");
+            }
+
+            if (quality < 0 || quality > 100)
+            {
+                throw new ArgumentOutOfRangeException(nameof(quality), "Quality must be between 0 and 100.");
+            }
+
+            // Generate output file path - same directory and name, but with .webp extension
+            var directory = Path.GetDirectoryName(imageFilePath);
+            var filenameWithoutExtension = Path.GetFileNameWithoutExtension(imageFilePath);
+            var outputPath = Path.Combine(directory ?? "", $"{filenameWithoutExtension}.webp");
+
+            // Load the image and save as WebP
+            using (var image = await Image.LoadAsync<Rgba32>(imageFilePath))
+            {
+                var encoder = new WebpEncoder()
+                {
+                    Quality = quality
+                };
+
+                await image.SaveAsync(outputPath, encoder);
+            }
+
+            // Get metadata for the new WebP file
+            return await GetImageMetadata(outputPath);
         }
 
 

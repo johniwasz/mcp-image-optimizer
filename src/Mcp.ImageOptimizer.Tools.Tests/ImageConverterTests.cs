@@ -3,6 +3,7 @@ using SixLabors.ImageSharp.PixelFormats;
 using SixLabors.ImageSharp.Processing;
 using SixLabors.ImageSharp.Drawing.Processing;
 using SixLabors.Fonts;
+using Mcp.ImageOptimizer.Tools.Tools;
 
 namespace Mcp.ImageOptimizer.Tools.Tests
 {
@@ -109,6 +110,105 @@ namespace Mcp.ImageOptimizer.Tools.Tests
 
             return image;
         
+        }
+
+        [Fact]
+        public async Task ConvertToWebP_ValidImage_ReturnsMetadataWithCorrectPath()
+        {
+            // Arrange
+            int width = 200;
+            int height = 150;
+            string testFileName = "test_webp_conversion.jpg";
+            
+            // Generate a test image
+            string testImagePath = GenerateTestImageSimple(width, height, testFileName);
+            
+            try
+            {
+                // Act
+                var result = await ImageTools.ConvertToWebP(testImagePath, 80);
+                
+                // Assert
+                Assert.NotNull(result);
+                Assert.Equal(width, result.Width);
+                Assert.Equal(height, result.Height);
+                Assert.NotNull(result.FilePath);
+                Assert.EndsWith(".webp", result.FilePath);
+                Assert.True(File.Exists(result.FilePath));
+                
+                // Verify the WebP file was created
+                var expectedWebPPath = Path.ChangeExtension(testImagePath, ".webp");
+                Assert.Equal(expectedWebPPath, result.FilePath);
+                
+                // Verify the WebP file has reasonable metadata
+                Assert.True(result.Size > 0);
+                
+                // Clean up
+                if (File.Exists(result.FilePath))
+                {
+                    File.Delete(result.FilePath);
+                }
+            }
+            finally
+            {
+                // Clean up original test image
+                if (File.Exists(testImagePath))
+                {
+                    File.Delete(testImagePath);
+                }
+            }
+        }
+
+        [Fact] 
+        public async Task ConvertToWebP_NonExistentFile_ThrowsFileNotFoundException()
+        {
+            // Arrange
+            string nonExistentPath = "/tmp/does_not_exist.jpg";
+            
+            // Act & Assert
+            await Assert.ThrowsAsync<FileNotFoundException>(() => 
+                ImageTools.ConvertToWebP(nonExistentPath));
+        }
+
+        [Fact]
+        public async Task ConvertToWebP_InvalidQuality_ThrowsArgumentOutOfRangeException()
+        {
+            // Arrange
+            string testImagePath = GenerateTestImageSimple(100, 100, "quality_test.jpg");
+            
+            try
+            {
+                // Act & Assert - Test quality below 0
+                await Assert.ThrowsAsync<ArgumentOutOfRangeException>(() => 
+                    ImageTools.ConvertToWebP(testImagePath, -1));
+                
+                // Act & Assert - Test quality above 100  
+                await Assert.ThrowsAsync<ArgumentOutOfRangeException>(() => 
+                    ImageTools.ConvertToWebP(testImagePath, 101));
+            }
+            finally
+            {
+                if (File.Exists(testImagePath))
+                {
+                    File.Delete(testImagePath);
+                }
+            }
+        }
+
+        private string GenerateTestImageSimple(int width, int height, string fileName)
+        {
+            // Save the image to a file in temp directory
+            string tempDir = Path.Combine(Path.GetTempPath(), "ImageOptimizerTests");
+            Directory.CreateDirectory(tempDir);
+            string filePath = Path.Combine(tempDir, fileName);
+
+            // Create a simple solid color image 
+            using (var image = new Image<Rgba32>(width, height))
+            {
+                image.Mutate(ctx => ctx.Fill(Color.Blue));
+                image.SaveAsJpeg(filePath);               
+            }
+            return filePath;
         }
     }
 }
