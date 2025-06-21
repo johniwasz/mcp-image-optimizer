@@ -8,6 +8,7 @@ namespace Mcp.ImageOptimizer.Tools.Tools
 {
     public class ImageMetadata
     {
+        public string? FilePath { get; set; }
 
         public int Width { get; set; }
 
@@ -31,8 +32,19 @@ namespace Mcp.ImageOptimizer.Tools.Tools
         public override string ToString()
         {
             var sb = new StringBuilder();
+            if (!string.IsNullOrEmpty(FilePath))
+            {
+                sb.AppendLine($"File Path: {FilePath}");
+            }
             sb.AppendLine($"Width: {Width}");
             sb.AppendLine($"Height: {Height}");
+            sb.AppendLine($"Size: {Size} bytes");
+            if (!string.IsNullOrEmpty(ResolutionFormat))
+            {
+                sb.AppendLine($"Resolution Format: {ResolutionFormat}");
+                sb.AppendLine($"Vertical Resolution: {VerticalResolution}");
+                sb.AppendLine($"Horizontal Resolution: {HorizontalResolution}");
+            }
             if (ExifData.Any())
             {
                 sb.AppendLine("EXIF Data:");
