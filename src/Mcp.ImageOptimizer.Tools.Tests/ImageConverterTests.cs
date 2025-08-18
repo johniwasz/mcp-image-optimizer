@@ -210,6 +210,185 @@ namespace Mcp.ImageOptimizer.Tools.Tests
             }
             return filePath;
         }
+
+        [Fact]
+        public async Task OptimizeImage_ValidJpegImage_ReturnsMetadataWithCorrectPath()
+        {
+            // Arrange
+            int width = 200;
+            int height = 150;
+            string testFileName = "test_optimize.jpg";
+            
+            // Generate a test image
+            string testImagePath = GenerateTestImageSimple(width, height, testFileName);
+            
+            try
+            {
+                // Act
+                var result = await ImageTools.OptimizeImage(testImagePath);
+                
+                // Assert
+                Assert.NotNull(result);
+                Assert.Equal(width, result.Width);
+                Assert.Equal(height, result.Height);
+                Assert.NotNull(result.FilePath);
+                Assert.EndsWith(".jpg", result.FilePath);
+                Assert.True(File.Exists(result.FilePath));
+                
+                // Verify the optimized file was created with correct prefix
+                var expectedOptimizedPath = Path.Combine(Path.GetDirectoryName(testImagePath) ?? "", $"opt-{testFileName}");
+                Assert.Equal(expectedOptimizedPath, result.FilePath);
+                
+                // Verify the optimized file has reasonable metadata
+                Assert.True(result.Size > 0);
+                
+                // Clean up optimized file
+                if (File.Exists(result.FilePath))
+                {
+                    File.Delete(result.FilePath);
+                }
+            }
+            finally
+            {
+                // Clean up original test image
+                if (File.Exists(testImagePath))
+                {
+                    File.Delete(testImagePath);
+                }
+            }
+        }
+
+        [Fact]
+        public async Task OptimizeImage_WithCustomPrefix_ReturnsMetadataWithCorrectPath()
+        {
+            // Arrange
+            int width = 100;
+            int height = 100;
+            string testFileName = "test_custom_prefix.jpg";
+            string customPrefix = "optimized-";
+            
+            // Generate a test image
+            string testImagePath = GenerateTestImageSimple(width, height, testFileName);
+            
+            try
+            {
+                // Act
+                var result = await ImageTools.OptimizeImage(testImagePath, customPrefix);
+                
+                // Assert
+                Assert.NotNull(result);
+                Assert.Equal(width, result.Width);
+                Assert.Equal(height, result.Height);
+                Assert.NotNull(result.FilePath);
+                Assert.EndsWith(".jpg", result.FilePath);
+                Assert.True(File.Exists(result.FilePath));
+                
+                // Verify the optimized file was created with custom prefix
+                var expectedOptimizedPath = Path.Combine(Path.GetDirectoryName(testImagePath) ?? "", $"{customPrefix}{testFileName}");
+                Assert.Equal(expectedOptimizedPath, result.FilePath);
+                
+                // Clean up optimized file
+                if (File.Exists(result.FilePath))
+                {
+                    File.Delete(result.FilePath);
+                }
+            }
+            finally
+            {
+                // Clean up original test image
+                if (File.Exists(testImagePath))
+                {
+                    File.Delete(testImagePath);
+                }
+            }
+        }
+
+        [Fact]
+        public async Task OptimizeImage_NonExistentFile_ThrowsFileNotFoundException()
+        {
+            // Arrange
+            string nonExistentPath = "/tmp/does_not_exist.jpg";
+            
+            // Act & Assert
+            await Assert.ThrowsAsync<FileNotFoundException>(() => 
+                ImageTools.OptimizeImage(nonExistentPath));
+        }
+
+        [Fact]
+        public async Task OptimizeImage_EmptyPrefix_ThrowsArgumentException()
+        {
+            // Arrange
+            string testImagePath = GenerateTestImageSimple(100, 100, "empty_prefix_test.jpg");
+            
+            try
+            {
+                // Act & Assert - Test empty prefix
+                await Assert.ThrowsAsync<ArgumentException>(() => 
+                    ImageTools.OptimizeImage(testImagePath, ""));
+                
+                // Act & Assert - Test null prefix  
+                await Assert.ThrowsAsync<ArgumentException>(() => 
+                    ImageTools.OptimizeImage(testImagePath, null!));
+            }
+            finally
+            {
+                if (File.Exists(testImagePath))
+                {
+                    File.Delete(testImagePath);
+                }
+            }
+        }
+
+        [Fact]
+        public async Task OptimizeImage_PngImage_MaintainsDimensionsAndFormat()
+        {
+            // Arrange
+            int width = 150;
+            int height = 100;
+            string testFileName = "test_optimize.png";
+            string tempDir = Path.Combine(Path.GetTempPath(), "ImageOptimizerTests");
+            Directory.CreateDirectory(tempDir);
+            string testImagePath = Path.Combine(tempDir, testFileName);
+
+            // Create a PNG test image
+            using (var image = new Image<Rgba32>(width, height))
+            {
+                image.Mutate(ctx => ctx.Fill(Color.Red));
+                image.SaveAsPng(testImagePath);
+            }
+            
+            try
+            {
+                // Act
+                var result = await ImageTools.OptimizeImage(testImagePath);
+                
+                // Assert
+                Assert.NotNull(result);
+                Assert.Equal(width, result.Width);
+                Assert.Equal(height, result.Height);
+                Assert.NotNull(result.FilePath);
+                Assert.EndsWith(".png", result.FilePath);
+                Assert.True(File.Exists(result.FilePath));
+                
+                // Verify the optimized file was created with correct prefix
+                var expectedOptimizedPath = Path.Combine(tempDir, $"opt-{testFileName}");
+                Assert.Equal(expectedOptimizedPath, result.FilePath);
+                
+                // Clean up optimized file
+                if (File.Exists(result.FilePath))
+                {
+                    File.Delete(result.FilePath);
+                }
+            }
+            finally
+            {
+                // Clean up original test image
+                if (File.Exists(testImagePath))
+                {
+                    File.Delete(testImagePath);
+                }
+            }
+        }
     }
 }
 
