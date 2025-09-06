@@ -4,7 +4,7 @@ using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
 
-namespace Mcp.ImageOptimizer.Tools.Tools
+namespace Mcp.ImageOptimizer.Tools
 {
     public class ImageMetadata
     {

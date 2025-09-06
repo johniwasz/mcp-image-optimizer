@@ -4,15 +4,15 @@ using System.ComponentModel;
 using System.Globalization;
 using SixLabors.ImageSharp;
 using SixLabors.ImageSharp.PixelFormats;
-using SixLabors.ImageSharp.Processing;
-using SixLabors.ImageSharp.Drawing.Processing;
 using SixLabors.ImageSharp.Formats.Webp;
 
-namespace Mcp.ImageOptimizer.Tools.Tools
+namespace Mcp.ImageOptimizer.Tools
 {
     [McpServerToolType]
     public sealed class ImageTools
     {
+        private const long GIGABYTES = 1024 * 1024 * 1024; // 1 GB in bytes
+
         [McpServerTool, Description("Get image metadata including height, width, and EXIF data if it is available.")]
         public static async Task<ImageMetadata?> GetImageMetadata(
             [Description("The fully qualified path to an image file.")] string imageFilePath)
@@ -71,6 +71,8 @@ namespace Mcp.ImageOptimizer.Tools.Tools
                 throw new ArgumentOutOfRangeException(nameof(quality), "Quality must be between 0 and 100.");
             }
 
+            long originalImageSize = new FileInfo(imageFilePath).Length;
+
             // Generate output file path - same directory and name, but with .webp extension
             var directory = Path.GetDirectoryName(imageFilePath);
             var filenameWithoutExtension = Path.GetFileNameWithoutExtension(imageFilePath);
@@ -88,7 +90,25 @@ namespace Mcp.ImageOptimizer.Tools.Tools
             }
 
             // Get metadata for the new WebP file
-            return await GetImageMetadata(outputPath);
+            ImageMetadata imageData = await GetImageMetadata(outputPath);
+
+            ConvertedImageMetadata convertedMetadata = new ConvertedImageMetadata
+            {
+                FilePath = outputPath,
+                Width = imageData.Width,
+                Height = imageData.Height,
+                Size = imageData.Size,
+                ResolutionFormat = imageData.ResolutionFormat,
+                VerticalResolution = imageData.VerticalResolution,
+                HorizontalResolution = imageData.HorizontalResolution,
+                ExifData = imageData.ExifData
+            };
+
+            long bytesSaved = originalImageSize - convertedMetadata.Size;
+
+            convertedMetadata.EnergySaved = bytesSaved/GIGABYTES * 0.81;
+
+            return convertedMetadata;
         }
 
 

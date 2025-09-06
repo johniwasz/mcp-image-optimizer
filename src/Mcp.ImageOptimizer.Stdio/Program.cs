@@ -3,9 +3,9 @@ using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Logging;
 using System.Net.Http.Headers;
 using ModelContextProtocol;
-using Mcp.ImageOptimizer.Tools.Tools;
+using Mcp.ImageOptimizer.Tools;
 
-namespace Mcp.ImageOptimizer.Tools
+namespace Mcp.ImageOptimizer.Stdio
 {
     public class Program
     {
