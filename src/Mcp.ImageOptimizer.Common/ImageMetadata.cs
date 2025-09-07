@@ -4,17 +4,19 @@ using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
 
-namespace Mcp.ImageOptimizer.Tools.Tools
+namespace Mcp.ImageOptimizer.Common
 {
     public class ImageMetadata
     {
-        public string? FilePath { get; set; }
+        public const long GIGABYTES = 1024 * 1024 * 1024; // 1 GB in bytes
+
+        public string? Path { get; set; }
 
         public int Width { get; set; }
 
         public int Height { get; set; }
 
-        public int Size { get; set; }
+        public long Size { get; set; }
 
         public string? ResolutionFormat { get; set; }
 
@@ -32,9 +34,9 @@ namespace Mcp.ImageOptimizer.Tools.Tools
         public override string ToString()
         {
             var sb = new StringBuilder();
-            if (!string.IsNullOrEmpty(FilePath))
+            if (!string.IsNullOrEmpty(Path))
             {
-                sb.AppendLine($"File Path: {FilePath}");
+                sb.AppendLine($"Path: {Path}");
             }
             sb.AppendLine($"Width: {Width}");
             sb.AppendLine($"Height: {Height}");

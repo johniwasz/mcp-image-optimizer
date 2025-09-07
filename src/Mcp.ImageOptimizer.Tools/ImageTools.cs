@@ -2,17 +2,17 @@
 using ModelContextProtocol.Server;
 using System.ComponentModel;
 using System.Globalization;
+using Mcp.ImageOptimizer.Common;
 using SixLabors.ImageSharp;
 using SixLabors.ImageSharp.PixelFormats;
-using SixLabors.ImageSharp.Processing;
-using SixLabors.ImageSharp.Drawing.Processing;
 using SixLabors.ImageSharp.Formats.Webp;
 
-namespace Mcp.ImageOptimizer.Tools.Tools
+namespace Mcp.ImageOptimizer.Tools
 {
     [McpServerToolType]
     public sealed class ImageTools
     {
+
         [McpServerTool, Description("Get image metadata including height, width, and EXIF data if it is available.")]
         public static async Task<ImageMetadata?> GetImageMetadata(
             [Description("The fully qualified path to an image file.")] string imageFilePath)
@@ -23,7 +23,7 @@ namespace Mcp.ImageOptimizer.Tools.Tools
             {
                 imageMetadata = new ImageMetadata
                 {
-                    FilePath = imageFilePath
+                    Path = imageFilePath
                 };
                 using (var image = await Image.LoadAsync<Rgba32>(imageFilePath))
                 {
@@ -71,6 +71,8 @@ namespace Mcp.ImageOptimizer.Tools.Tools
                 throw new ArgumentOutOfRangeException(nameof(quality), "Quality must be between 0 and 100.");
             }
 
+            long originalImageSize = new FileInfo(imageFilePath).Length;
+
             // Generate output file path - same directory and name, but with .webp extension
             var directory = Path.GetDirectoryName(imageFilePath);
             var filenameWithoutExtension = Path.GetFileNameWithoutExtension(imageFilePath);
@@ -87,8 +89,22 @@ namespace Mcp.ImageOptimizer.Tools.Tools
                 await image.SaveAsync(outputPath, encoder);
             }
 
-            // Get metadata for the new WebP file
-            return await GetImageMetadata(outputPath);
+            // Change this line:
+            // ImageMetadata imageData = await GetImageMetadata(outputPath);
+            // To the following, to handle possible null return value:
+            ImageMetadata? imageData = await GetImageMetadata(outputPath);
+            if (imageData == null)
+            {
+                throw new InvalidOperationException($"Failed to retrieve metadata for the converted WebP file: {outputPath}");
+            }
+
+            ConvertedImageMetadata convertedMetadata = new ConvertedImageMetadata(imageData);
+
+            long bytesSaved = originalImageSize - convertedMetadata.Size;
+
+            convertedMetadata.EnergySaved = bytesSaved/ImageMetadata.GIGABYTES * 0.81;
+
+            return convertedMetadata;
         }
 
 
