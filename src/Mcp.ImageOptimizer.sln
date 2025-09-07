@@ -14,6 +14,10 @@ Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Mcp.ImageOptimizer.Tools.Te
 EndProject
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Mcp.ImageOptimizer.Stdio", "Mcp.ImageOptimizer.Stdio\Mcp.ImageOptimizer.Stdio.csproj", "{8326D750-F02D-0C75-978D-D59426F0BFC6}"
 EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Mcp.ImageOptimizer.Azure.Tools", "Mcp.ImageOptimizer.Azure.Tools\Mcp.ImageOptimizer.Azure.Tools.csproj", "{03672DFA-3478-4E22-8F59-96B382350B7D}"
+EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Mcp.ImageOptimizer.Common", "Mcp.ImageOptimizer.Common\Mcp.ImageOptimizer.Common.csproj", "{D55230FA-95CE-4949-9498-77BD736A5A17}"
+EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
 		Debug|Any CPU = Debug|Any CPU
@@ -32,6 +36,14 @@ Global
 		{8326D750-F02D-0C75-978D-D59426F0BFC6}.Debug|Any CPU.Build.0 = Debug|Any CPU
 		{8326D750-F02D-0C75-978D-D59426F0BFC6}.Release|Any CPU.ActiveCfg = Release|Any CPU
 		{8326D750-F02D-0C75-978D-D59426F0BFC6}.Release|Any CPU.Build.0 = Release|Any CPU
+		{03672DFA-3478-4E22-8F59-96B382350B7D}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{03672DFA-3478-4E22-8F59-96B382350B7D}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{03672DFA-3478-4E22-8F59-96B382350B7D}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{03672DFA-3478-4E22-8F59-96B382350B7D}.Release|Any CPU.Build.0 = Release|Any CPU
+		{D55230FA-95CE-4949-9498-77BD736A5A17}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{D55230FA-95CE-4949-9498-77BD736A5A17}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{D55230FA-95CE-4949-9498-77BD736A5A17}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{D55230FA-95CE-4949-9498-77BD736A5A17}.Release|Any CPU.Build.0 = Release|Any CPU
 	EndGlobalSection
 	GlobalSection(SolutionProperties) = preSolution
 		HideSolutionNode = FALSE

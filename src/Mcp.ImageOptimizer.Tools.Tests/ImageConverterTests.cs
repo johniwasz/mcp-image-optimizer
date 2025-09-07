@@ -3,7 +3,7 @@ using SixLabors.ImageSharp.PixelFormats;
 using SixLabors.ImageSharp.Processing;
 using SixLabors.ImageSharp.Drawing.Processing;
 using SixLabors.Fonts;
-using Mcp.ImageOptimizer.Tools.Tools;
+using Mcp.ImageOptimizer.Tools;
 
 namespace Mcp.ImageOptimizer.Tools.Tests
 {
@@ -41,7 +41,23 @@ namespace Mcp.ImageOptimizer.Tools.Tests
                     {
                         Console.WriteLine("EXIF Metadata:");
 
-                        foreach (var prop in image.Metadata?.ExifProfile?.Values)
+                        // Replace all usages of image.Metadata?.ExifProfile?.Values with a null-checked version
+                        if (image.Metadata?.ExifProfile?.Values != null)
+                        {
+                            foreach (var prop in image.Metadata.ExifProfile.Values)
+                            {
+                                Console.WriteLine($"{prop.Tag}: {prop.GetValue()}");
+                            }
+                        }
+                        else
+                        {
+                            Console.WriteLine("No EXIF Metadata found.");
+                        }
+                    }
+                    var exifValues = image.Metadata?.ExifProfile?.Values;
+                    if (exifValues != null)
+                    {
+                        foreach (var prop in exifValues)
                         {
                             Console.WriteLine($"{prop.Tag}: {prop.GetValue()}");
                         }
@@ -70,12 +86,16 @@ namespace Mcp.ImageOptimizer.Tools.Tests
         {
             // Save the image to a file
             string filePath = Path.Combine(AppContext.BaseDirectory, "TestImages", fileName);
-            Directory.CreateDirectory(Path.GetDirectoryName(filePath)); // Ensure the directory exists
 
+            if(!Directory.Exists(Path.GetDirectoryName(filePath)))
+            {
+                Directory.CreateDirectory(Path.GetDirectoryName(filePath)!);
+            }
+            
             // Create a new image with the specified dimensions and a blue background
             using (var image = GenerateImage(width, height))
             {
-                image.SaveAsJpeg(filePath);               
+                image.SaveAsJpeg(filePath);
             }
             return filePath;
         }
@@ -132,21 +152,21 @@ namespace Mcp.ImageOptimizer.Tools.Tests
                 Assert.NotNull(result);
                 Assert.Equal(width, result.Width);
                 Assert.Equal(height, result.Height);
-                Assert.NotNull(result.FilePath);
-                Assert.EndsWith(".webp", result.FilePath);
-                Assert.True(File.Exists(result.FilePath));
+                Assert.NotNull(result.Path);
+                Assert.EndsWith(".webp", result.Path);
+                Assert.True(File.Exists(result.Path));
                 
                 // Verify the WebP file was created
                 var expectedWebPPath = Path.ChangeExtension(testImagePath, ".webp");
-                Assert.Equal(expectedWebPPath, result.FilePath);
+                Assert.Equal(expectedWebPPath, result.Path);
                 
                 // Verify the WebP file has reasonable metadata
                 Assert.True(result.Size > 0);
                 
                 // Clean up
-                if (File.Exists(result.FilePath))
+                if (File.Exists(result.Path))
                 {
-                    File.Delete(result.FilePath);
+                    File.Delete(result.Path);
                 }
             }
             finally
