@@ -2,7 +2,9 @@
 Optimizes image sizes for screen displays in accordance with Green Software Foundation principles.
 
 
+
 ## Sample MPC Server Configurations
+
 
 ### STDIO Configuration for local testing
 
@@ -24,3 +26,23 @@ Optimizes image sizes for screen displays in accordance with Green Software Foun
   }
 }
 ```
+
+## Resources
+
+
+
+[Model Context Protocol Git repo](https://github.com/modelcontextprotocol)
+
+[Model Context Protocol Specification](https://modelcontextprotocol.org)]
+
+Helpful guide for securing MCP Servers [MCP-Checklist](https://github.com/MCP-Manager/MCP-Checklists)
+
+[MCP C# SDK](https://github.com/modelcontextprotocol/csharp-sdk)
+
+[Awesome-MCP-Servers](https://github.com/punkpeye/awesome-mcp-servers)
+
+[Awesome-MCP-Clients](https://github.com/punkpeye/awesome-mcp-clients)
+
+[MCP Inspector](https://github.com/modelcontextprotocol/inspector)
+
+MCP Server Published on NuGet [Building Your First MCP Server with .NET and Publishing to NuGet](https://devblogs.microsoft.com/dotnet/mcp-server-dotnet-nuget-quickstart/)

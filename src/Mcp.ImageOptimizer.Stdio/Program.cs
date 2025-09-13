@@ -5,6 +5,7 @@ using System.Net.Http.Headers;
 using ModelContextProtocol;
 using Mcp.ImageOptimizer.Tools;
 
+
 namespace Mcp.ImageOptimizer.Stdio
 {
     public class Program

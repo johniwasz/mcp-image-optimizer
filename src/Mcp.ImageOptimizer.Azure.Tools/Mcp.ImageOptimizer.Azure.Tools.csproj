@@ -7,8 +7,11 @@
   </PropertyGroup>
 
   <ItemGroup>
-    <PackageReference Include="Azure.Storage.Blobs" Version="12.25.0" />
-    <PackageReference Include="SixLabors.ImageSharp" Version="3.1.11" />
+    <PackageReference Include="Azure.Identity" />
+    <PackageReference Include="Azure.ResourceManager.Storage" />
+    <PackageReference Include="Azure.Storage.Blobs" />
+    <PackageReference Include="SixLabors.ImageSharp" />
+    <PackageReference Include="System.Configuration.ConfigurationManager" />
   </ItemGroup>
 
   <ItemGroup>

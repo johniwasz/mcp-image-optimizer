@@ -1,0 +1,47 @@
+﻿<Project Sdk="Microsoft.NET.Sdk">
+
+  <PropertyGroup>
+    <TargetFramework>net9.0</TargetFramework>
+    <RollForward>Major</RollForward>
+    <OutputType>Exe</OutputType>
+    <Nullable>enable</Nullable>
+    <ImplicitUsings>enable</ImplicitUsings>
+
+    <!-- Set up the NuGet package to be an MCP server -->
+    <PackAsTool>true</PackAsTool>
+    <PackageType>McpServer</PackageType>
+
+    <!-- Set recommended package metadata -->
+    <PackageReadmeFile>README.md</PackageReadmeFile>
+    <PackageId>SampleMcpServer</PackageId>
+    <PackageVersion>0.1.0-beta</PackageVersion>
+    <PackageTags>AI; MCP; server; stdio</PackageTags>
+    <Description>An MCP server using the MCP C# SDK.</Description>
+  </PropertyGroup>
+
+  <!-- Include additional files for browsing the MCP server. -->
+  <ItemGroup>
+    <None Include=".mcp\server.json" Pack="true" PackagePath="/.mcp/" />
+    <None Include="README.md" Pack="true" PackagePath="/" />
+  </ItemGroup>
+
+  <ItemGroup>
+      <PackageReference Include="Microsoft.Extensions.Hosting" />
+      <PackageReference Include="ModelContextProtocol" />
+      <PackageReference Include="ModelContextProtocol.AspNetCore" />
+	  <PackageReference Include="OpenTelemetry.Exporter.OpenTelemetryProtocol" />
+	  <PackageReference Include="OpenTelemetry.Extensions.Hosting" />
+	  <PackageReference Include="OpenTelemetry.Instrumentation.AspNetCore" />
+	  <PackageReference Include="OpenTelemetry.Instrumentation.Http" />
+	  <PackageReference Include="Serilog" />
+	  <PackageReference Include="Serilog.Extensions.Hosting" />
+	  <PackageReference Include="Serilog.Sinks.Console" />
+	  <PackageReference Include="Serilog.Sinks.Debug" />
+	  <PackageReference Include="Serilog.Sinks.File" />
+  </ItemGroup>
+
+  <ItemGroup>
+    <ProjectReference Include="..\Mcp.ImageOptimizer.Azure.Tools\Mcp.ImageOptimizer.Azure.Tools.csproj" />
+  </ItemGroup>
+
+</Project>

@@ -3,21 +3,12 @@ using SixLabors.ImageSharp.PixelFormats;
 using SixLabors.ImageSharp.Processing;
 using SixLabors.ImageSharp.Drawing.Processing;
 using SixLabors.Fonts;
-using Mcp.ImageOptimizer.Tools;
 
 namespace Mcp.ImageOptimizer.Tools.Tests
 {
 
     public class ImageConverterTests
     {
-        [Fact]
-        public void Test1()
-        {
-            string imagePath = Path.Combine(AppContext.BaseDirectory, "TestImages", "sample.jpg");
-            Assert.True(File.Exists(imagePath), $"File not found: {imagePath}");
-
-            // You can now use imagePath to open/read the file
-        }
 
         [Fact]
         public async Task ValidateMetadataTool_Dimensions()
@@ -35,7 +26,7 @@ namespace Mcp.ImageOptimizer.Tools.Tests
 
                 if (image.Metadata != null)
                 {
-                    var xmlProfile = image.Metadata.XmpProfile;
+                    var xmlProfile = image.Metadata.ExifProfile;
 
                     if (image.Metadata?.ExifProfile?.Values != null)
                     {
