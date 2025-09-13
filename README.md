@@ -44,3 +44,5 @@ Helpful guide for securing MCP Servers [MCP-Checklist](https://github.com/MCP-Ma
 [Awesome-MCP-Clients](https://github.com/punkpeye/awesome-mcp-clients)
 
 [MCP Inspector](https://github.com/modelcontextprotocol/inspector)
+
+MCP Server Published on NuGet [Building Your First MCP Server with .NET and Publishing to NuGet](https://devblogs.microsoft.com/dotnet/mcp-server-dotnet-nuget-quickstart/)
