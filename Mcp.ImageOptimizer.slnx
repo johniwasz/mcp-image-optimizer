@@ -1,0 +1,19 @@
+<Solution>
+  <Folder Name="/Solution Items/">
+    <File Path="Directory.build.props" />
+    <File Path="Directory.Packages.props" />
+    <File Path="LICENSE" />
+    <File Path="README.MD" />
+  </Folder>
+  <Folder Name="/src/">
+    <Project Path="src/Mcp.ImageOptimizer.Azure.Tools/Mcp.ImageOptimizer.Azure.Tools.csproj" />
+    <Project Path="src/Mcp.ImageOptimizer.Common/Mcp.ImageOptimizer.Common.csproj" />
+    <Project Path="src/Mcp.ImageOptimizer.Stdio/Mcp.ImageOptimizer.Stdio.csproj" />
+    <Project Path="src/Mcp.ImageOptimizer.StreamingHttp/Mcp.ImageOptimizer.StreamingHttp.csproj" />
+    <Project Path="src/Mcp.ImageOptimizer.Tools/Mcp.ImageOptimizer.Tools.csproj" />
+  </Folder>
+  <Folder Name="/tests/">
+    <Project Path="tests/Mcp.ImageOptimizer.Tools.Tests/Mcp.ImageOptimizer.Tools.Tests.csproj" />
+  </Folder>
+
+</Solution>

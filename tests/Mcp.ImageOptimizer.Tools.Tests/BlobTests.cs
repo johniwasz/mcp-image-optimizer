@@ -1,5 +1,6 @@
 ﻿using Azure.Storage.Blobs;
 using Azure.Storage.Blobs.Models;
+using Mcp.ImageOptimizer.Azure.Tools;
 using Mcp.ImageOptimizer.Common;
 using System;
 using System.Collections.Generic;
@@ -13,6 +14,16 @@ namespace Mcp.ImageOptimizer.Tools.Tests
     {
 
         private const string CONTAINER_NAME = "game-images";
+
+        [Fact] 
+        public async Task GetStorageAccountsAsync()
+        {
+            BlobUtility tools = new BlobUtility();
+
+
+            var accounts = await tools.ListStorageAccountsAsync();
+
+        }
 
         [Fact]
         public async Task CanReadBlobFromStorageAccountAync()

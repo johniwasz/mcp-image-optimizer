@@ -1,13 +1,16 @@
 ﻿<Project Sdk="Microsoft.NET.Sdk">
 
-  <PropertyGroup>
-    <TargetFramework>net9.0</TargetFramework>
+  
+  <PropertyGroup>    
     <ImplicitUsings>enable</ImplicitUsings>
-    <Nullable>enable</Nullable>
+
   </PropertyGroup>
 
-  <ItemGroup>
-    <PackageReference Include="SixLabors.ImageSharp" Version="3.1.11" />
+  <ItemGroup>    
+	  <PackageReference Include="ModelContextProtocol"/>
+	  <PackageReference Include="SixLabors.ImageSharp"/>
+	  <PackageReference Include="SixLabors.ImageSharp.Drawing"/>
+	  <PackageReference Include="SixLabors.Fonts"/>	  
   </ItemGroup>
 
 </Project>
