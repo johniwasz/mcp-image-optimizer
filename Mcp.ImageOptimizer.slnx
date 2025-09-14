@@ -1,4 +1,5 @@
 <Solution>
+  <Folder Name="/scripts/" />
   <Folder Name="/Solution Items/">
     <File Path="Directory.build.props" />
     <File Path="Directory.Packages.props" />

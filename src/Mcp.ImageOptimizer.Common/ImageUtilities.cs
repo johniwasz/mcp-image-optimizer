@@ -9,10 +9,10 @@ using System.Threading.Tasks;
 
 namespace Mcp.ImageOptimizer.Common
 {
-    public static class ImageUtilities
+    public class ImageConversationService : IImageConversationService
     {
 
-        public static async Task<ImageMetadata?> GetImageMetadataFromFileAsync(string imageFilePath)
+        public async Task<ImageMetadata?> GetImageMetadataFromFileAsync(string imageFilePath)
         {
             ImageMetadata? imageMetadata = null;
 
@@ -30,7 +30,7 @@ namespace Mcp.ImageOptimizer.Common
             return imageMetadata;
         }
 
-        public static async Task<ImageMetadata> GetImageMetadataFromStreamAsync(MemoryStream memoryStream, string streamPath)
+        public async Task<ImageMetadata> GetImageMetadataFromStreamAsync(MemoryStream memoryStream, string streamPath)
         {
             ImageMetadata? imageMetadata = null;
 
@@ -43,7 +43,7 @@ namespace Mcp.ImageOptimizer.Common
             return imageMetadata;
         }
 
-        public static ImageMetadata GetImageMetadata(Image loadedImage, string path, long size)
+        public ImageMetadata GetImageMetadata(Image loadedImage, string path, long size)
         {
             if (loadedImage == null)
             {
@@ -77,7 +77,7 @@ namespace Mcp.ImageOptimizer.Common
             return imageMetadata;
         }
 
-        public static async Task<MemoryStream> ConvertToWebPAsync(MemoryStream memStream, int quality)
+        public async Task<MemoryStream> ConvertToWebPAsync(MemoryStream memStream, int quality)
         {
             // Load the image and save as WebP
 

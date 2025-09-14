@@ -1,5 +1,4 @@
 ﻿using Azure;
-using Azure;
 using Azure.Core;
 using Azure.Identity;
 using Azure.ResourceManager;
@@ -8,9 +7,10 @@ using Azure.ResourceManager.Storage;
 using Azure.Storage.Blobs;
 using Azure.Storage.Blobs.Models;
 using Mcp.ImageOptimizer.Azure.Tools;
-using Mcp.ImageOptimizer.Common;
+using Mcp.ImageOptimizer.Azure.Tools.Models;
 using Microsoft.AspNetCore.Hosting.Server;
 using Microsoft.Extensions.Azure;
+using Mcp.ImageOptimizer.Common;
 using ModelContextProtocol;
 using ModelContextProtocol.Protocol;
 using ModelContextProtocol.Server;
@@ -32,16 +32,17 @@ namespace Mcp.ImageOptimizer.StreamingHttp.Tools
         [Description("Retrieves a list of Azure storage accounts, containers, and blobs in a region or subscription.")]
         public async Task<IEnumerable<StorageAccountInfo>> ListStorageAccountsAync(
             IMcpServer server,
+            IAzureResourceService azureResourceService,
             RequestContext<CallToolRequestParams> context,
             string? region = null,
             string? subscriptionId = null)
         {
             // Authenticate using DefaultAzureCredential (supports Azure CLI, Managed Identity, environment vars, Visual Studio, etc.)
-            var credential = AzureResourceUtility.GetCredential();
+            var credential = azureResourceService.GetCredential();
 
             var armClient = new ArmClient(credential);
 
-            SubscriptionResource subscriptionResource = null;
+            SubscriptionResource? subscriptionResource = null;
 
             try
             {
@@ -169,6 +170,8 @@ namespace Mcp.ImageOptimizer.StreamingHttp.Tools
         [Description("Retrieves a list of Azure storage accounts, containers, and blobs in a region or subscription.")]
         public async Task<IEnumerable<ImageMetadata>> GetBlobImageInfoAsyc(
                IMcpServer server,
+               IBlobService blobService,
+               IAzureResourceService azureResourceService,
                RequestContext<CallToolRequestParams> context,
                [Description("Azure Storage Account name")] string storageAccountName,
                string? subscriptionId = null)
@@ -177,14 +180,20 @@ namespace Mcp.ImageOptimizer.StreamingHttp.Tools
 
             // Authenticate using DefaultAzureCredential (supports Azure CLI, Managed Identity, environment vars, Visual Studio, etc.)
 
-            var storageAccount = await AzureResourceUtility.GetStorageAccountResourceAsync(storageAccountName, subscriptionId);
+            var storageAccount = await azureResourceService.GetStorageAccountResourceAsync(storageAccountName, subscriptionId);
+
+
+            if(storageAccount == null)
+            {
+                throw new InvalidOperationException($"Storage account '{storageAccountName}' could not be found.");
+            }
 
             try
             {
                 // Use data-plane BlobServiceClient with AAD credential to enumerate containers
                 var blobServiceUri = new Uri($"https://{storageAccount.Data.Name}.blob.core.windows.net");
 
-                var blobServiceClient = new BlobServiceClient(blobServiceUri, AzureResourceUtility.GetCredential());
+                var blobServiceClient = new BlobServiceClient(blobServiceUri, azureResourceService.GetCredential());
 
                 List<ContainerInfo> containerInfos = new();
 
@@ -196,8 +205,7 @@ namespace Mcp.ImageOptimizer.StreamingHttp.Tools
 
                         await foreach (var blobItem in containerClient.GetBlobsAsync())
                         {
-                            var blobMem = await BlobUtility.DownloadBlobAsync(storageAccountName, containerItem.Name, blobItem.Name);
-                            imageInfos.Add(await ImageUtilities.GetImageMetadataFromStreamAsync(blobMem, blobItem.Name));
+                            imageInfos.Add(await blobService.GetImageMetadataAsync(storageAccountName, containerItem.Name, blobItem.Name));
                         }
                     }
                     catch (RequestFailedException)
@@ -218,64 +226,32 @@ namespace Mcp.ImageOptimizer.StreamingHttp.Tools
             return imageInfos;
         }
 
-        [McpServerTool(Name = "convert_bloblist_image_metadata", ReadOnly = true, Title = "Convert blob images to a smaller format")]
-        [Description("Convert blob images to a smaller format (WebP)")]
+        [McpServerTool(Name = "shrink_blob_images", ReadOnly = false, Title = "Shrink Blob Images")]
+        [Description("Convert blob images to a smaller format (WebP). The original image can be optionally deleted.")]
         public async Task<IEnumerable<ConvertedImageMetadata>> ShrinkBlobImagesAsyc(
         IMcpServer server,
+        IBlobService blobService,
+        IAzureResourceService azureResourceService,
         RequestContext<CallToolRequestParams> context,
         [Description("Azure Storage Account name")] string storageAccountName,
-        int quality = 80,
+        [Description("Quality of the converted image from 0 to 100")] int quality = 80,
+        [Description("Indictect if the original image should be deleted")] bool deleteOriginal = false,
         string? subscriptionId = null)
         {
             List<ConvertedImageMetadata> imageInfos = new List<ConvertedImageMetadata>();
 
             // Authenticate using DefaultAzureCredential (supports Azure CLI, Managed Identity, environment vars, Visual Studio, etc.)
 
-            var storageAccount = await AzureResourceUtility.GetStorageAccountResourceAsync(storageAccountName, subscriptionId);
+            var storageAccount = await azureResourceService.GetStorageAccountResourceAsync(storageAccountName, subscriptionId);
+
+            if(storageAccount == null)
+            {
+                throw new McpException($"Storage account '{storageAccountName}' could not be found.", McpErrorCode.InvalidParams);
+            }
 
             try
-            {
-                // Use data-plane BlobServiceClient with AAD credential to enumerate containers
-                var blobServiceUri = new Uri($"https://{storageAccount.Data.Name}.blob.core.windows.net");
-
-                var blobServiceClient = new BlobServiceClient(blobServiceUri, AzureResourceUtility.GetCredential());
-
-                await foreach (var containerItem in blobServiceClient.GetBlobContainersAsync())
-                {
-                    ContainerInfo containerInfo = new ContainerInfo(containerItem.Name, containerItem.Properties.ETag.ToString(), containerItem.Properties.LastModified);
-
-                    try
-                    {
-                        var containerClient = blobServiceClient.GetBlobContainerClient(containerItem.Name);
-
-                        await foreach (var blobItem in containerClient.GetBlobsAsync())
-                        {
-                            var blobMem = await BlobUtility.DownloadBlobAsync(storageAccountName, containerItem.Name, blobItem.Name);
-
-                            long origSize = blobItem.Properties.ContentLength ?? 0;
-
-                            var webPStream = await ImageUtilities.ConvertToWebPAsync(blobMem, quality);
-
-                            string newWebPName = $"{Path.GetFileNameWithoutExtension(blobItem.Name)}.webp";
-
-                            ImageMetadata convertedMetadata = await ImageUtilities.GetImageMetadataFromStreamAsync(webPStream, newWebPName);
-
-                            await BlobUtility.UploadBlobAsync(containerClient, newWebPName, webPStream);
-
-                            ConvertedImageMetadata convertedImageMetadata = new ConvertedImageMetadata(convertedMetadata);
-
-                            long bytesSaved = origSize - convertedMetadata.Size;
-
-                            convertedImageMetadata.EnergySaved = bytesSaved / ImageMetadata.GIGABYTES * 0.81;
-
-                            imageInfos.Add(convertedImageMetadata);
-                        }
-                    }
-                    catch (RequestFailedException)
-                    {
-                        // Could not enumerate blobs for this container (permissions/network) - continue with empty list
-                    }
-                }
+            {         
+                imageInfos.AddRange(await blobService.ConvertImageAndGetMetadataAsync(storageAccountName, quality, deleteOriginal));
             }
             catch (RequestFailedException)
             {

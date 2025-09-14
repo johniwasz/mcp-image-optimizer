@@ -5,6 +5,9 @@ using Azure.ResourceManager;
 using Azure.ResourceManager.Resources;
 using Azure.ResourceManager.Storage;
 using Azure.Storage.Blobs;
+using Azure.Storage.Blobs.Models;
+using Mcp.ImageOptimizer.Azure.Tools;
+using Mcp.ImageOptimizer.Azure.Tools.Models;
 using Mcp.ImageOptimizer.Common;
 using ModelContextProtocol.Server;
 using SixLabors.ImageSharp;
@@ -15,51 +18,21 @@ using System.Globalization;
 
 namespace Mcp.ImageOptimizer.Azure.Tools
 {
-    public class StorageAccountInfo
+
+
+    public class BlobService : IBlobService
     {
-       public StorageAccountInfo(string Name, string Id, string Location, string Kind, string Sku)
+        private IImageConversationService _imageService;
+
+        private IAzureResourceService _azureResourceService;
+
+        public BlobService(IAzureResourceService azureResourceService, IImageConversationService imageService)
         {
-            this.Name = Name;
-            this.Id = Id;
-            this.Location = Location;
-            this.Kind = Kind;
-            this.Sku = Sku;
+            _azureResourceService = azureResourceService;
+            _imageService = imageService;
         }
-
-        public string Name { get; }
-        public string Id { get; }
-        public string Location { get; }
-        public string Kind { get; }
-        public string Sku { get; }
-
-        public IEnumerable<ContainerInfo> Containers { get; set; } = Array.Empty<ContainerInfo>();    
-
-    } 
-
-    public class ContainerInfo
-    {
-        public ContainerInfo(string name, string etag, DateTimeOffset lastModified)
-        {
-            this.Name = name;
-            this.Etag = etag;
-            LastModified = lastModified;
-        }
-
-        public string Name { get; }
-        public string Etag { get; }
-
-        public DateTimeOffset LastModified { get; }
-
-        public IEnumerable<string> Blobs { get; set; } = Array.Empty<string>();
-
-    }
-
-    public record BlobInfo(string Name, string Etag, DateTimeOffset LastModified, long Size);
-
-
-    public class BlobUtility
-    {
         /*
+         *
         public static async Task ConvertBlobAsync(string sourceConnectionString, string sourceContainerName, string sourceBlobName, string destinationConnectionString, string destinationContainerName, string destinationBlobName)
         {
             // Placeholder for future implementation
@@ -86,18 +59,18 @@ namespace Mcp.ImageOptimizer.Azure.Tools
         }
         */
 
-        public static async Task UploadBlobAsync(BlobContainerClient blobContainer, string newBlobName, MemoryStream newBlob)
+        public async Task UploadBlobAsync(BlobContainerClient blobContainer, string newBlobName, MemoryStream newBlob)
         {
             newBlob.Position = 0;
             var blobClient = blobContainer.GetBlobClient(newBlobName);
             await blobClient.UploadAsync(newBlob, overwrite: true);
         }
 
-        public static async Task<MemoryStream> DownloadBlobAsync(string accountName, string containerName, string blobName)
+        public async Task<MemoryStream> DownloadBlobAsync(string accountName, string containerName, string blobName)
         {
             Uri blobUri = BuildBlobrUri(accountName, containerName, blobName);
 
-            var credential = AzureResourceUtility.GetCredential();
+            var credential = _azureResourceService.GetCredential();
 
             var blobClient = new BlobClient(blobUri, credential);
 
@@ -107,22 +80,19 @@ namespace Mcp.ImageOptimizer.Azure.Tools
             return memoryStream;
         }
 
-        private static Uri BuildContainerUri(string accountName, string containerName)
+        private Uri BuildContainerUri(string accountName, string containerName)
         {
             // Replace "blob.core.windows.net" with the correct endpoint for your region if necessary
             // For example, "blob.core.chinacloudapi.cn" for Azure China
-            string blobEndpoint = "blob.core.windows.net";
 
             string uriString = $"https://{accountName}.blob.core.windows.net/{containerName}";
             return new Uri(uriString);
         }
 
-        private static Uri BuildBlobrUri(string accountName, string containerName, string blobName)
+        private Uri BuildBlobrUri(string accountName, string containerName, string blobName)
         {
             // Replace "blob.core.windows.net" with the correct endpoint for your region if necessary
             // For example, "blob.core.chinacloudapi.cn" for Azure China
-            string blobEndpoint = "blob.core.windows.net";
-
             string uriString = $"https://{accountName}.blob.core.windows.net/{containerName}/{blobName}";
             return new Uri(uriString);
         }
@@ -153,24 +123,24 @@ namespace Mcp.ImageOptimizer.Azure.Tools
             }
 
             // Get metadata for the new WebP file
-            ImageMetadata imageData = await ImageUtilities.GetImageMetadataFromFileAsync(blobName) ?? new ImageMetadata();
+            ImageMetadata imageData = await _imageService.GetImageMetadataFromFileAsync(blobName) ?? new ImageMetadata();
 
             ConvertedImageMetadata convertedMetadata = new ConvertedImageMetadata(imageData);
-          
+
             long bytesSaved = originalImageSize - convertedMetadata.Size;
             convertedMetadata.EnergySaved = bytesSaved / ImageMetadata.GIGABYTES * 0.81;
 
             return convertedMetadata;
 
         }
-        public async Task<IEnumerable<StorageAccountInfo>> ListStorageAccountsAsync(string region = null, string subscriptionId = null)
+        public async Task<IEnumerable<StorageAccountInfo>> ListStorageAccountsAsync(string? region = null, string? subscriptionId = null)
         {
             // Authenticate using DefaultAzureCredential (supports Azure CLI, Managed Identity, environment vars, Visual Studio, etc.)
-            var credential = AzureResourceUtility.GetCredential();
+            var credential = _azureResourceService.GetCredential();
 
             var armClient = new ArmClient(credential);
 
-            SubscriptionResource subscriptionResource = await AzureResourceUtility.GetSubscriptionResourceAsync(armClient, subscriptionId);
+            SubscriptionResource? subscriptionResource = await _azureResourceService.GetSubscriptionResourceAsync(armClient, subscriptionId);
 
             if (subscriptionResource == null)
             {
@@ -183,9 +153,6 @@ namespace Mcp.ImageOptimizer.Azure.Tools
             var storageAccounts = subscriptionResource.GetStorageAccountsAsync();
             await foreach (var sa in storageAccounts)
             {
-                // Replace this line:
-                // await foreach (var sa in storageAccounts)
-                
                 var loc = sa.Data.Location.Name ?? sa.Data.Location.ToString() ?? string.Empty;
                 if (!string.IsNullOrWhiteSpace(region) &&
                     !string.Equals(loc, region, StringComparison.OrdinalIgnoreCase) &&
@@ -204,6 +171,65 @@ namespace Mcp.ImageOptimizer.Azure.Tools
             }
 
             return results;
+        }
+
+        public async Task<ImageMetadata> GetImageMetadataAsync(string storageAccountName, string containerName, string blobName)
+        {
+            var blobMem = await DownloadBlobAsync(storageAccountName, containerName, blobName);
+            return await _imageService.GetImageMetadataFromStreamAsync(blobMem, blobName);
+
+        }
+
+        public async Task<IEnumerable<ConvertedImageMetadata>> ConvertImageAndGetMetadataAsync(string storageAccountName, int quality, bool deleteOriginal)
+        {
+            List<ConvertedImageMetadata> imageInfos = new List<ConvertedImageMetadata>();
+
+            // Use data-plane BlobServiceClient with AAD credential to enumerate containers
+            var blobServiceUri = new Uri($"https://{storageAccountName}.blob.core.windows.net");
+
+            var blobServiceClient = new BlobServiceClient(blobServiceUri, _azureResourceService.GetCredential());
+
+            await foreach (var containerItem in blobServiceClient.GetBlobContainersAsync())
+            {
+                try
+                {
+                    var containerClient = blobServiceClient.GetBlobContainerClient(containerItem.Name);
+
+                    await foreach (var blobItem in containerClient.GetBlobsAsync())
+                    {
+                        var blobMem = await DownloadBlobAsync(storageAccountName, containerItem.Name, blobItem.Name);
+
+                        long origSize = blobItem.Properties.ContentLength ?? 0;
+
+                        var webPStream = await _imageService.ConvertToWebPAsync(blobMem, quality);
+
+                        string newWebPName = $"{Path.GetFileNameWithoutExtension(blobItem.Name)}.webp";
+
+                        ImageMetadata convertedMetadata = await _imageService.GetImageMetadataFromStreamAsync(webPStream, newWebPName);
+
+                        await UploadBlobAsync(containerClient, newWebPName, webPStream);
+
+                        ConvertedImageMetadata convertedImageMetadata = new ConvertedImageMetadata(convertedMetadata);
+
+                        long bytesSaved = origSize - convertedMetadata.Size;
+
+                        convertedImageMetadata.EnergySaved = (bytesSaved / ImageMetadata.GIGABYTES) * 0.81;
+
+                        imageInfos.Add(convertedImageMetadata);
+
+                        if (deleteOriginal)
+                        {
+                            var blobClient = containerClient.GetBlobClient(blobItem.Name);
+                            await blobClient.DeleteIfExistsAsync();
+                        }
+                    }
+                }
+                catch (RequestFailedException)
+                {
+                    // Could not enumerate blobs for this container (permissions/network) - continue with empty list
+                } 
+            }
+            return imageInfos;
         }
     }
 }

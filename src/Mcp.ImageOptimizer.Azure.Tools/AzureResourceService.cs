@@ -14,10 +14,10 @@ using System.Threading.Tasks;
 
 namespace Mcp.ImageOptimizer.Azure.Tools
 {
-    public class AzureResourceUtility
+    public class AzureResourceService : IAzureResourceService
     {
 
-        public static TokenCredential GetCredential()
+        public TokenCredential GetCredential()
         {
             // 1) Prefer environment variables (standard names used by Azure SDKs)
             var envTenant = Environment.GetEnvironmentVariable("AZURE_TENANT_ID");
@@ -49,11 +49,9 @@ namespace Mcp.ImageOptimizer.Azure.Tools
             return new DefaultAzureCredential();
         }
 
-
-
-        public static async Task<SubscriptionResource> GetSubscriptionResourceAsync(ArmClient armClient, string subscriptionId = null)
+        public async Task<SubscriptionResource?> GetSubscriptionResourceAsync(ArmClient armClient, string? subscriptionId = null)
         {
-            SubscriptionResource retResource = null;
+            SubscriptionResource? retResource = null;
 
             try
             {
@@ -90,12 +88,11 @@ namespace Mcp.ImageOptimizer.Azure.Tools
             return retResource;
         }
 
-        public static async Task<StorageAccountResource> GetStorageAccountResourceAsync(string storageAccount, string subscriptionId = null)
+        public async Task<StorageAccountResource?> GetStorageAccountResourceAsync(string storageAccount, string? subscriptionId = null)
         {
-            StorageAccountResource retResource = null;
+            StorageAccountResource? retResource = null;
 
-            SubscriptionResource subscriptionResource = await GetSubscriptionResourceAsync(new ArmClient(GetCredential()), subscriptionId);
-
+            SubscriptionResource? subscriptionResource = await GetSubscriptionResourceAsync(new ArmClient(GetCredential()), subscriptionId);
 
             // List all storage accounts in the subscription
             var storageAccounts = subscriptionResource.GetStorageAccountsAsync();
@@ -108,9 +105,7 @@ namespace Mcp.ImageOptimizer.Azure.Tools
                     break;
                 }
             }
-
             return retResource;
         }
-
     }
 }

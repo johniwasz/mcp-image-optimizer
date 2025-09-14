@@ -6,6 +6,9 @@ using OpenTelemetry.Trace;
 using ModelContextProtocol;
 using ModelContextProtocol.AspNetCore;
 using Mcp.ImageOptimizer.StreamingHttp.Tools;
+using Microsoft.Extensions.Azure;
+using Mcp.ImageOptimizer.Azure.Tools;
+using Mcp.ImageOptimizer.Common;
 
 var builder = WebApplication.CreateBuilder(args);
 
@@ -22,6 +25,10 @@ builder.Services.AddOpenTelemetry()
         .AddHttpClientInstrumentation())
     .WithLogging()
     .UseOtlpExporter();
+
+builder.Services
+    .AddScoped<IBlobService, BlobService>()
+    .AddScoped<IImageConversationService, ImageConversationService>();
 
 var app = builder.Build();
 

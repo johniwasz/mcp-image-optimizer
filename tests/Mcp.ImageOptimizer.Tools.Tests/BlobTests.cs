@@ -7,6 +7,7 @@ using System.Collections.Generic;
 using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
+using Mcp.ImageOptimizer.Azure.Tools.Models;
 
 namespace Mcp.ImageOptimizer.Tools.Tests
 {
@@ -18,11 +19,11 @@ namespace Mcp.ImageOptimizer.Tools.Tests
         [Fact] 
         public async Task GetStorageAccountsAsync()
         {
-            BlobUtility tools = new BlobUtility();
+            IAzureResourceService azureService = new AzureResourceService();
+            IImageConversationService imageService = new ImageConversationService();
+            IBlobService blobService = new BlobService(azureService, imageService);
 
-
-            var accounts = await tools.ListStorageAccountsAsync();
-
+            var accounts = await blobService.ListStorageAccountsAsync();
         }
 
         [Fact]
@@ -50,7 +51,9 @@ namespace Mcp.ImageOptimizer.Tools.Tests
 
             Assert.True(memoryStream.Length > 0, "Blob content should not be empty.");
 
-            var imageMetadata = ImageUtilities.GetImageMetadataFromStreamAsync(memoryStream, blobName);
+            ImageConversationService imageService = new ImageConversationService();
+
+            var imageMetadata = imageService.GetImageMetadataFromStreamAsync(memoryStream, blobName);
 
 
         }
