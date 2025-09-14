@@ -7,10 +7,10 @@
   </PropertyGroup>
 
   <ItemGroup>    
-	  <PackageReference Include="ModelContextProtocol"/>
-	  <PackageReference Include="SixLabors.ImageSharp"/>
-	  <PackageReference Include="SixLabors.ImageSharp.Drawing"/>
-	  <PackageReference Include="SixLabors.Fonts"/>	  
+	  <PackageReference Include="ModelContextProtocol" />
+	  <PackageReference Include="SixLabors.ImageSharp" />
+	  <PackageReference Include="SixLabors.ImageSharp.Drawing" />
+	  <PackageReference Include="SixLabors.Fonts" />	  
   </ItemGroup>
 
 </Project>

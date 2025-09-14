@@ -44,4 +44,8 @@
     <ProjectReference Include="..\Mcp.ImageOptimizer.Azure.Tools\Mcp.ImageOptimizer.Azure.Tools.csproj" />
   </ItemGroup>
 
+	<ItemGroup>
+		<InternalsVisibleTo Include="Mcp.ImageOptimizer.Tools.Tests" />
+	</ItemGroup>
+
 </Project>

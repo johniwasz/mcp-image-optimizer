@@ -3,12 +3,11 @@ using Azure.ResourceManager;
 using Azure.ResourceManager.Resources;
 using Azure.ResourceManager.Storage;
 
-namespace Mcp.ImageOptimizer.Azure.Tools
+namespace Mcp.ImageOptimizer.Azure.Tools;
+
+public interface IAzureResourceService
 {
-    public interface IAzureResourceService
-    {
-        TokenCredential GetCredential();
-        Task<StorageAccountResource?> GetStorageAccountResourceAsync(string storageAccount, string? subscriptionId = null);
-        Task<SubscriptionResource?> GetSubscriptionResourceAsync(ArmClient armClient, string? subscriptionId = null);
-    }
+    TokenCredential GetCredential();
+    Task<StorageAccountResource?> GetStorageAccountResourceAsync(string storageAccount, string? subscriptionId = null, CancellationToken cancellationToken = default);
+    Task<SubscriptionResource?> GetSubscriptionResourceAsync(ArmClient armClient, string? subscriptionId = null, CancellationToken cancellation = default);
 }
