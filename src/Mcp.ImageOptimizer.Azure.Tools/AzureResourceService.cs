@@ -4,6 +4,7 @@ using Azure.Identity;
 using Azure.ResourceManager;
 using Azure.ResourceManager.Resources;
 using Azure.ResourceManager.Storage;
+using Azure.Storage.Blobs;
 using Microsoft.Extensions.Configuration;
 using System;
 using System.Collections.Generic;
@@ -49,40 +50,38 @@ public class AzureResourceService : IAzureResourceService
         return new DefaultAzureCredential();
     }
 
-    public async Task<SubscriptionResource?> GetSubscriptionResourceAsync(ArmClient armClient, string? subscriptionId = null, CancellationToken cancellationToken = default)
+    public async Task<SubscriptionResource?> GetSubscriptionResourceAsync(ArmClient? armClient = null, string? subscriptionId = null, CancellationToken cancellationToken = default)
     {
+        if (armClient == null)
+        {
+            armClient = new ArmClient(GetCredential());
+        }
+
         SubscriptionResource? retResource = null;
 
-        try
+        if (!string.IsNullOrWhiteSpace(subscriptionId))
         {
-            if (!string.IsNullOrWhiteSpace(subscriptionId))
-            {
-                var subId = subscriptionId.Trim();
-                var subResourceId = new ResourceIdentifier($"/subscriptions/{subId}");
-                retResource = armClient.GetSubscriptionResource(subResourceId);
-                // Ensure the resource exists by calling GetAsync (will throw if not found / not authorized)
-                await retResource.GetAsync(cancellationToken);
-            }
-            else
-            {
-                // Try to get the default subscription. Fall back to the first available subscription.
-                try
-                {
-                    retResource = await armClient.GetDefaultSubscriptionAsync(cancellationToken);
-                }
-                catch (RequestFailedException)
-                {
-                    await foreach (var sub in armClient.GetSubscriptions().GetAllAsync(cancellationToken))
-                    {
-                        retResource = sub;
-                        break;
-                    }
-                }
-            }
+            var subId = subscriptionId.Trim();
+            var subResourceId = new ResourceIdentifier($"/subscriptions/{subId}");
+            retResource = armClient.GetSubscriptionResource(subResourceId);
+            // Ensure the resource exists by calling GetAsync (will throw if not found / not authorized)
+            await retResource.GetAsync(cancellationToken);
         }
-        catch (Exception ex)
+        else
         {
-            throw new InvalidOperationException("Unable to resolve Azure subscription. Ensure you are authenticated and have access to a subscription.", ex);
+            // Try to get the default subscription. Fall back to the first available subscription.
+            try
+            {
+                retResource = await armClient.GetDefaultSubscriptionAsync(cancellationToken);
+            }
+            catch (RequestFailedException)
+            {
+                await foreach (var sub in armClient.GetSubscriptions().GetAllAsync(cancellationToken))
+                {
+                    retResource = sub;
+                    break;
+                }
+            }
         }
 
         return retResource;
@@ -106,5 +105,18 @@ public class AzureResourceService : IAzureResourceService
             }
         }
         return retResource;
+    }
+
+    public BlobServiceClient GetBlobServiceClient(string storageAccount)
+    {
+        if (string.IsNullOrWhiteSpace(storageAccount))
+        {
+            throw new ArgumentException("Storage account name must be provided.", nameof(storageAccount));
+        }
+        // Construct the Blob service endpoint from the storage account name
+        string blobEndpoint = $"https://{storageAccount}.blob.core.windows.net";
+        // Create the BlobServiceClient using the endpoint and the credential
+        var blobServiceClient = new BlobServiceClient(new Uri(blobEndpoint), GetCredential());
+        return blobServiceClient;
     }
 }

@@ -21,11 +21,11 @@ namespace Mcp.ImageOptimizer.Azure.Tools;
 
 public class BlobService : IBlobService
 {
-    private IImageConversationService _imageService;
+    private IImageConversionService _imageService;
 
     private IAzureResourceService _azureResourceService;
 
-    public BlobService(IAzureResourceService azureResourceService, IImageConversationService imageService)
+    public BlobService(IAzureResourceService azureResourceService, IImageConversionService imageService)
     {
         _azureResourceService = azureResourceService;
         _imageService = imageService;
@@ -184,10 +184,7 @@ public class BlobService : IBlobService
     {
         List<ConvertedImageMetadata> imageInfos = new List<ConvertedImageMetadata>();
 
-        // Use data-plane BlobServiceClient with AAD credential to enumerate containers
-        var blobServiceUri = new Uri($"https://{storageAccountName}.blob.core.windows.net");
-
-        var blobServiceClient = new BlobServiceClient(blobServiceUri, _azureResourceService.GetCredential());
+        var blobServiceClient = _azureResourceService.GetBlobServiceClient(storageAccountName); 
 
         await foreach (var containerItem in blobServiceClient.GetBlobContainersAsync(cancellationToken: cancellationToken))
         {

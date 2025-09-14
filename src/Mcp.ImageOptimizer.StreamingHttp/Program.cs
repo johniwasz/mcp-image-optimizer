@@ -28,7 +28,7 @@ builder.Services.AddOpenTelemetry()
 
 builder.Services
     .AddScoped<IBlobService, BlobService>()
-    .AddScoped<IImageConversationService, ImageConversationService>()
+    .AddScoped<IImageConversionService, ImageConversionService>()
     .AddScoped<IAzureResourceService, AzureResourceService>();
 
 var app = builder.Build();

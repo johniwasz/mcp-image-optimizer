@@ -19,7 +19,7 @@ public class BlobServiceTests
     public async Task GetStorageAccountsAsync()
     {
         IAzureResourceService azureService = new AzureResourceService();
-        IImageConversationService imageService = new ImageConversationService();
+        IImageConversionService imageService = new ImageConversionService();
         IBlobService blobService = new BlobService(azureService, imageService);
 
         var accounts = await blobService.ListStorageAccountsAsync();
@@ -50,7 +50,7 @@ public class BlobServiceTests
 
         Assert.True(memoryStream.Length > 0, "Blob content should not be empty.");
 
-        ImageConversationService imageService = new ImageConversationService();
+        ImageConversionService imageService = new ImageConversionService();
 
         var imageMetadata = imageService.GetImageMetadataFromStreamAsync(memoryStream, blobName);
 

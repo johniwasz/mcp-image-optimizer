@@ -10,7 +10,7 @@ using System.Threading.Tasks;
 
 namespace Mcp.ImageOptimizer.Common;
 
-public class ImageConversationService : IImageConversationService
+public class ImageConversionService : IImageConversionService
 {
     private HashSet<string> _largeImageTypes = new HashSet<string>(StringComparer.OrdinalIgnoreCase)
         {

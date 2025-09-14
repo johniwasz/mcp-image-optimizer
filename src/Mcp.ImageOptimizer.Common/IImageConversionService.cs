@@ -3,7 +3,7 @@ using SixLabors.ImageSharp;
 
 namespace Mcp.ImageOptimizer.Common;
 
-public interface IImageConversationService
+public interface IImageConversionService
 {
     Task<MemoryStream> ConvertToWebPAsync(MemoryStream memStream, int quality, CancellationToken cancellationToken = default);
     ImageMetadata GetImageMetadata(Image loadedImage, string path, long size);

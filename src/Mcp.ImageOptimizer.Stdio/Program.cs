@@ -3,8 +3,8 @@ using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Logging;
 using System.Net.Http.Headers;
 using ModelContextProtocol;
-using Mcp.ImageOptimizer.Tools;
-
+using Mcp.ImageOptimizer.Common;
+using Mcp.ImageOptimizer.Stdio.Tools;
 
 namespace Mcp.ImageOptimizer.Stdio
 {
@@ -17,6 +17,8 @@ namespace Mcp.ImageOptimizer.Stdio
             builder.Services.AddMcpServer()
                 .WithStdioServerTransport()
                 .WithTools<ImageTools>();
+
+            builder.Services.AddScoped<IImageConversionService, ImageConversionService>();
 
             builder.Logging.AddConsole(options =>
             {

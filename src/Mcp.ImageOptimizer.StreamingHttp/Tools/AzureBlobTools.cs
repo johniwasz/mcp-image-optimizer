@@ -28,59 +28,30 @@ namespace Mcp.ImageOptimizer.StreamingHttp.Tools;
 [McpServerToolType]
 internal class AzureBlobTools
 {
-
     [McpServerTool(Name = "list_storage_accounts", ReadOnly = true, Title = "List all Azure Storage Accounts")]
     [Description("Retrieves a list of Azure storage accounts, containers, and blobs in a region or subscription.")]
     public async Task<IEnumerable<StorageAccountInfo>> ListStorageAccountsAync(
         IMcpServer server,
         IAzureResourceService azureResourceService,
         RequestContext<CallToolRequestParams> context,
-        CancellationToken cancellationToken = default,
         [Description("Azure region")] string? region = null,
-        [Description("Azure subscription")] string? subscriptionId = null)
+        [Description("Azure subscription")] string? subscriptionId = null,
+        CancellationToken cancellationToken = default)
     {
-        // Authenticate using DefaultAzureCredential (supports Azure CLI, Managed Identity, environment vars, Visual Studio, etc.)
-        var credential = azureResourceService.GetCredential();
-
-        var armClient = new ArmClient(credential);
-
         SubscriptionResource? subscriptionResource = null;
 
         try
         {
-            if (!string.IsNullOrWhiteSpace(subscriptionId))
-            {
-                var subId = subscriptionId.Trim();
-                var subResourceId = new ResourceIdentifier($"/subscriptions/{subId}");
-                subscriptionResource = armClient.GetSubscriptionResource(subResourceId);
-                // Ensure the resource exists by calling GetAsync (will throw if not found / not authorized)
-                await subscriptionResource.GetAsync(cancellationToken);
-            }
-            else
-            {
-                // Try to get the default subscription. Fall back to the first available subscription.
-                try
-                {
-                    subscriptionResource = await armClient.GetDefaultSubscriptionAsync(cancellationToken);
-                }
-                catch (RequestFailedException)
-                {
-                    await foreach (var sub in armClient.GetSubscriptions().GetAllAsync(cancellationToken))
-                    {
-                        subscriptionResource = sub;
-                        break;
-                    }
-                }
-            }
+            subscriptionResource = await azureResourceService.GetSubscriptionResourceAsync(cancellationToken: cancellationToken);
         }
         catch (Exception ex)
         {
-            throw new InvalidOperationException("Unable to resolve Azure subscription. Ensure you are authenticated and have access to a subscription.", ex);
+            throw new McpException("Unable to resolve Azure subscription. Ensure you are authenticated and have access to a subscription.", ex);
         }
 
         if (subscriptionResource == null)
         {
-            throw new InvalidOperationException("No Azure subscription could be resolved.");
+            throw new McpException("No Azure subscription could be resolved.");
         }
 
         var results = new List<StorageAccountInfo>(capacity: 16);
@@ -112,9 +83,7 @@ internal class AzureBlobTools
 
             try
             {
-                // Use data-plane BlobServiceClient with AAD credential to enumerate containers
-                var blobServiceUri = new Uri($"https://{sa.Data.Name}.blob.core.windows.net");
-                var blobServiceClient = new BlobServiceClient(blobServiceUri, credential);
+                var blobServiceClient = azureResourceService.GetBlobServiceClient(sa.Data.Name);
 
                 List<ContainerInfo> containerInfos = [];
 
@@ -193,10 +162,7 @@ internal class AzureBlobTools
 
         try
         {
-            // Use data-plane BlobServiceClient with AAD credential to enumerate containers
-            var blobServiceUri = new Uri($"https://{storageAccount.Data.Name}.blob.core.windows.net");
-
-            var blobServiceClient = new BlobServiceClient(blobServiceUri, azureResourceService.GetCredential());
+            var blobServiceClient = azureResourceService.GetBlobServiceClient(storageAccountName);
 
             List<ContainerInfo> containerInfos = new();
 
@@ -232,15 +198,15 @@ internal class AzureBlobTools
     [McpServerTool(Name = "shrink_blob_images", ReadOnly = false, Title = "Shrink Blob Images")]
     [Description("Convert blob images to a smaller format (WebP). The original image can be optionally deleted.")]
     public async Task<IEnumerable<ConvertedImageMetadata>> ShrinkBlobImagesAsyc(
-    IMcpServer server,
-    IBlobService blobService,
-    IAzureResourceService azureResourceService,
-    RequestContext<CallToolRequestParams> context,
-    [Description("Azure Storage Account name")] string storageAccountName,
-    [Description("Quality of the converted image from 0 to 100")] int quality = 80,
-    [Description("Indictect if the original image should be deleted")] bool deleteOriginal = false,
-    [Description("Azure subcription id")] string? subscriptionId = null,
-    CancellationToken cancellationToken = default)
+        IMcpServer server,
+        IBlobService blobService,
+        IAzureResourceService azureResourceService,
+        RequestContext<CallToolRequestParams> context,
+        [Description("Azure Storage Account name")] string storageAccountName,
+        [Description("Quality of the converted image from 0 to 100")] int quality = 80,
+        [Description("Indictect if the original image should be deleted")] bool deleteOriginal = false,
+        [Description("Azure subcription id")] string? subscriptionId = null,
+        CancellationToken cancellationToken = default)
     {
         List<ConvertedImageMetadata> imageInfos = new List<ConvertedImageMetadata>();
 

@@ -1,1 +1,0 @@
-﻿npx @modelcontextprotocol/inspector dotnet run --configuration Debug --no-build

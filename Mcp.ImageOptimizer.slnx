@@ -11,7 +11,6 @@
     <Project Path="src/Mcp.ImageOptimizer.Common/Mcp.ImageOptimizer.Common.csproj" />
     <Project Path="src/Mcp.ImageOptimizer.Stdio/Mcp.ImageOptimizer.Stdio.csproj" />
     <Project Path="src/Mcp.ImageOptimizer.StreamingHttp/Mcp.ImageOptimizer.StreamingHttp.csproj" />
-    <Project Path="src/Mcp.ImageOptimizer.Tools/Mcp.ImageOptimizer.Tools.csproj" />
   </Folder>
   <Folder Name="/tests/">
     <Project Path="tests/Mcp.ImageOptimizer.Tools.Tests/Mcp.ImageOptimizer.Tools.Tests.csproj" />

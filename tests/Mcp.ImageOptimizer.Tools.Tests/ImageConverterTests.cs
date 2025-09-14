@@ -3,6 +3,8 @@ using SixLabors.ImageSharp.PixelFormats;
 using SixLabors.ImageSharp.Processing;
 using SixLabors.ImageSharp.Drawing.Processing;
 using SixLabors.Fonts;
+using Mcp.ImageOptimizer.Common;
+using Mcp.ImageOptimizer.Stdio.Tools;
 
 namespace Mcp.ImageOptimizer.Tools.Tests;
 
@@ -129,14 +131,16 @@ public class ImageConverterTests
         int width = 200;
         int height = 150;
         string testFileName = "test_webp_conversion.jpg";
-        
+
+        IImageConversionService imageService = new ImageConversionService();
+
         // Generate a test image
         string testImagePath = GenerateTestImageSimple(width, height, testFileName);
-        
+        ImageTools imageTools = new ImageTools();
         try
         {
             // Act
-            var result = await ImageTools.ConvertToWebP(testImagePath, 80);
+            var result = await imageTools.ConvertToWebPAsync(imageService, testImagePath, 80);
             
             // Assert
             Assert.NotNull(result);
@@ -172,29 +176,33 @@ public class ImageConverterTests
     [Fact] 
     public async Task ConvertToWebP_NonExistentFile_ThrowsFileNotFoundException()
     {
+        IImageConversionService imageService = new ImageConversionService();
+        ImageTools imageTools = new ImageTools();
         // Arrange
         string nonExistentPath = "/tmp/does_not_exist.jpg";
         
         // Act & Assert
         await Assert.ThrowsAsync<FileNotFoundException>(() => 
-            ImageTools.ConvertToWebP(nonExistentPath));
+            imageTools.ConvertToWebPAsync(imageService, nonExistentPath));
     }
 
     [Fact]
     public async Task ConvertToWebP_InvalidQuality_ThrowsArgumentOutOfRangeException()
     {
+        IImageConversionService imageService = new ImageConversionService();
+        ImageTools imageTools = new ImageTools();
         // Arrange
         string testImagePath = GenerateTestImageSimple(100, 100, "quality_test.jpg");
-        
+
         try
         {
             // Act & Assert - Test quality below 0
             await Assert.ThrowsAsync<ArgumentOutOfRangeException>(() => 
-                ImageTools.ConvertToWebP(testImagePath, -1));
+                imageTools.ConvertToWebPAsync(imageService, testImagePath, -1));
             
             // Act & Assert - Test quality above 100  
             await Assert.ThrowsAsync<ArgumentOutOfRangeException>(() => 
-                ImageTools.ConvertToWebP(testImagePath, 101));
+                imageTools.ConvertToWebPAsync(imageService,testImagePath, 101));
         }
         finally
         {
