@@ -168,10 +168,10 @@ namespace Mcp.ImageOptimizer.StreamingHttp.Tools
         [McpServerTool(Name = "get_bloblist_image_metadata", ReadOnly = true, Title = "Get a list of image blob metadata")]
         [Description("Retrieves a list of Azure storage accounts, containers, and blobs in a region or subscription.")]
         public async Task<IEnumerable<ImageMetadata>> GetBlobImageInfoAsyc(
-                IMcpServer server,
-                RequestContext<CallToolRequestParams> context,
-                [Description("Azure Storage Account name")] string storageAccountName,
-                string? subscriptionId = null)
+               IMcpServer server,
+               RequestContext<CallToolRequestParams> context,
+               [Description("Azure Storage Account name")] string storageAccountName,
+               string? subscriptionId = null)
         {
             List<ImageMetadata> imageInfos = new List<ImageMetadata>();
 
@@ -190,10 +190,6 @@ namespace Mcp.ImageOptimizer.StreamingHttp.Tools
 
                 await foreach (var containerItem in blobServiceClient.GetBlobContainersAsync())
                 {
-                    ContainerInfo containerInfo = new ContainerInfo(containerItem.Name, containerItem.Properties.ETag.ToString(), containerItem.Properties.LastModified);
-
-                    var blobNames = new List<string>();
-
                     try
                     {
                         var containerClient = blobServiceClient.GetBlobContainerClient(containerItem.Name);
@@ -201,21 +197,14 @@ namespace Mcp.ImageOptimizer.StreamingHttp.Tools
                         await foreach (var blobItem in containerClient.GetBlobsAsync())
                         {
                             var blobMem = await BlobUtility.DownloadBlobAsync(storageAccountName, containerItem.Name, blobItem.Name);
-
-
+                            imageInfos.Add(await ImageUtilities.GetImageMetadataFromStreamAsync(blobMem, blobItem.Name));
                         }
                     }
                     catch (RequestFailedException)
                     {
                         // Could not enumerate blobs for this container (permissions/network) - continue with empty list
                     }
-
-                    containerInfo.Blobs = blobNames;
-
-                    containerInfos.Add(containerInfo);
                 }
-
-                
             }
             catch (RequestFailedException)
             {
@@ -226,6 +215,76 @@ namespace Mcp.ImageOptimizer.StreamingHttp.Tools
                 // Swallow other errors per-account to avoid failing the entire operation. Optionally log.
             }
 
+            return imageInfos;
+        }
+
+        [McpServerTool(Name = "convert_bloblist_image_metadata", ReadOnly = true, Title = "Convert blob images to a smaller format")]
+        [Description("Convert blob images to a smaller format (WebP)")]
+        public async Task<IEnumerable<ConvertedImageMetadata>> ShrinkBlobImagesAsyc(
+        IMcpServer server,
+        RequestContext<CallToolRequestParams> context,
+        [Description("Azure Storage Account name")] string storageAccountName,
+        int quality = 80,
+        string? subscriptionId = null)
+        {
+            List<ConvertedImageMetadata> imageInfos = new List<ConvertedImageMetadata>();
+
+            // Authenticate using DefaultAzureCredential (supports Azure CLI, Managed Identity, environment vars, Visual Studio, etc.)
+
+            var storageAccount = await AzureResourceUtility.GetStorageAccountResourceAsync(storageAccountName, subscriptionId);
+
+            try
+            {
+                // Use data-plane BlobServiceClient with AAD credential to enumerate containers
+                var blobServiceUri = new Uri($"https://{storageAccount.Data.Name}.blob.core.windows.net");
+
+                var blobServiceClient = new BlobServiceClient(blobServiceUri, AzureResourceUtility.GetCredential());
+
+                await foreach (var containerItem in blobServiceClient.GetBlobContainersAsync())
+                {
+                    ContainerInfo containerInfo = new ContainerInfo(containerItem.Name, containerItem.Properties.ETag.ToString(), containerItem.Properties.LastModified);
+
+                    try
+                    {
+                        var containerClient = blobServiceClient.GetBlobContainerClient(containerItem.Name);
+
+                        await foreach (var blobItem in containerClient.GetBlobsAsync())
+                        {
+                            var blobMem = await BlobUtility.DownloadBlobAsync(storageAccountName, containerItem.Name, blobItem.Name);
+
+                            long origSize = blobItem.Properties.ContentLength ?? 0;
+
+                            var webPStream = await ImageUtilities.ConvertToWebPAsync(blobMem, quality);
+
+                            string newWebPName = $"{Path.GetFileNameWithoutExtension(blobItem.Name)}.webp";
+
+                            ImageMetadata convertedMetadata = await ImageUtilities.GetImageMetadataFromStreamAsync(webPStream, newWebPName);
+
+                            await BlobUtility.UploadBlobAsync(containerClient, newWebPName, webPStream);
+
+                            ConvertedImageMetadata convertedImageMetadata = new ConvertedImageMetadata(convertedMetadata);
+
+                            long bytesSaved = origSize - convertedMetadata.Size;
+
+                            convertedImageMetadata.EnergySaved = bytesSaved / ImageMetadata.GIGABYTES * 0.81;
+
+                            imageInfos.Add(convertedImageMetadata);
+                        }
+                    }
+                    catch (RequestFailedException)
+                    {
+                        // Could not enumerate blobs for this container (permissions/network) - continue with empty list
+                    }
+                }
+            }
+            catch (RequestFailedException)
+            {
+                // If we cannot list containers for this account (lack of permissions or network), leave the list empty.
+            }
+            catch (Exception)
+            {
+                // Swallow other errors per-account to avoid failing the entire operation. Optionally log.
+            }
 
             return imageInfos;
         }

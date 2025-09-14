@@ -86,6 +86,13 @@ namespace Mcp.ImageOptimizer.Azure.Tools
         }
         */
 
+        public static async Task UploadBlobAsync(BlobContainerClient blobContainer, string newBlobName, MemoryStream newBlob)
+        {
+            newBlob.Position = 0;
+            var blobClient = blobContainer.GetBlobClient(newBlobName);
+            await blobClient.UploadAsync(newBlob, overwrite: true);
+        }
+
         public static async Task<MemoryStream> DownloadBlobAsync(string accountName, string containerName, string blobName)
         {
             Uri blobUri = BuildBlobrUri(accountName, containerName, blobName);

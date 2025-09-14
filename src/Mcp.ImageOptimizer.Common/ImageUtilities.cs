@@ -1,4 +1,5 @@
 ﻿using SixLabors.ImageSharp;
+using SixLabors.ImageSharp.Formats.Webp;
 using SixLabors.ImageSharp.PixelFormats;
 using System;
 using System.Collections.Generic;
@@ -76,5 +77,27 @@ namespace Mcp.ImageOptimizer.Common
             return imageMetadata;
         }
 
+        public static async Task<MemoryStream> ConvertToWebPAsync(MemoryStream memStream, int quality)
+        {
+            // Load the image and save as WebP
+
+            memStream.Position = 0;
+
+            MemoryStream webPStream = new();
+
+            using (var image = await Image.LoadAsync<Rgba32>(memStream))
+            {
+                var encoder = new WebpEncoder()
+                {
+                    Quality = quality
+                };
+
+                await image.SaveAsync(webPStream, encoder);
+            }
+
+            webPStream.Position = 0;
+
+            return webPStream;
+        }
     }
 }
