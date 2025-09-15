@@ -1,4 +1,3 @@
-﻿using Azure;
 using Azure.Core;
 using Azure.Identity;
 using Azure.ResourceManager;
@@ -210,7 +209,7 @@ internal class AzureBlobTools
         [Description("Azure Storage Account name")] string storageAccountName,
         [Description("Quality of the converted image from 0 to 100")] int quality = 80,
         [Description("Indicate if the original image should be deleted")] bool deleteOriginal = false,
-        [Description("Azure subcription id")] string? subscriptionId = null,
+        [Description("Azure subscription id")] string? subscriptionId = null,
         CancellationToken cancellationToken = default)
     {
         List<ConvertedImageMetadata> imageInfos = new();

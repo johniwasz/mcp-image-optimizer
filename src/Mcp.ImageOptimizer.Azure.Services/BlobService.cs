@@ -194,7 +194,7 @@ public class BlobService : IBlobService
 
                 await foreach (var blobItem in containerClient.GetBlobsAsync())
                 {
-                    // Detemine if the blob is an image we can process
+                    // Determine if the blob is an image we can process
                     if (_imageService.IsLargeImageMimeType(blobItem.Properties.ContentType))
                     {
                         var blobMem = await DownloadBlobAsync(storageAccountName, containerItem.Name, blobItem.Name, cancellationToken);

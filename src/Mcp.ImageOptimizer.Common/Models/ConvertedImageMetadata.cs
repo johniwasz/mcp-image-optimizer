@@ -24,6 +24,6 @@ public class ConvertedImageMetadata : ImageMetadata
         }
     }
 
-    [Description("Returns energy saved per Kilowatt hour for a single request of the imeage")]
+    [Description("Returns energy saved per Kilowatt hour for a single request of the image")]
     public double EnergySaved { get; set; }
 }
