@@ -202,7 +202,7 @@ public class ImageConverterTests
             
             // Act & Assert - Test quality above 100  
             await Assert.ThrowsAsync<ArgumentOutOfRangeException>(() => 
-                imageTools.ConvertToWebPAsync(imageService,testImagePath, 101));
+                imageTools.ConvertToWebPAsync(imageService, testImagePath, 101));
         }
         finally
         {
