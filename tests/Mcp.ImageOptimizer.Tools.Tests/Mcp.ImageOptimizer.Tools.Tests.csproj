@@ -26,9 +26,10 @@
   </ItemGroup>
 
   <ItemGroup>
-    <ProjectReference Include="..\..\src\Mcp.ImageOptimizer.Azure.Tools\Mcp.ImageOptimizer.Azure.Tools.csproj" />
+    <ProjectReference Include="..\..\src\Mcp.ImageOptimizer.Azure.Services\Mcp.ImageOptimizer.Azure.Services.csproj" />
     <ProjectReference Include="..\..\src\Mcp.ImageOptimizer.Common\Mcp.ImageOptimizer.Common.csproj" />
-    <ProjectReference Include="..\..\src\Mcp.ImageOptimizer.Tools\Mcp.ImageOptimizer.Tools.csproj" />
+    <ProjectReference Include="..\..\src\Mcp.ImageOptimizer.Stdio\Mcp.ImageOptimizer.Stdio.csproj" />
+    <ProjectReference Include="..\..\src\Mcp.ImageOptimizer.StreamingHttp\Mcp.ImageOptimizer.StreamingHttp.csproj" />
   </ItemGroup>
 
   <ItemGroup>

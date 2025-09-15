@@ -6,11 +6,10 @@
     <File Path="README.MD" />
   </Folder>
   <Folder Name="/src/">
-    <Project Path="src/Mcp.ImageOptimizer.Azure.Tools/Mcp.ImageOptimizer.Azure.Tools.csproj" />
+    <Project Path="src/Mcp.ImageOptimizer.Azure.Services/Mcp.ImageOptimizer.Azure.Services.csproj" />
     <Project Path="src/Mcp.ImageOptimizer.Common/Mcp.ImageOptimizer.Common.csproj" />
     <Project Path="src/Mcp.ImageOptimizer.Stdio/Mcp.ImageOptimizer.Stdio.csproj" />
     <Project Path="src/Mcp.ImageOptimizer.StreamingHttp/Mcp.ImageOptimizer.StreamingHttp.csproj" />
-    <Project Path="src/Mcp.ImageOptimizer.Tools/Mcp.ImageOptimizer.Tools.csproj" />
   </Folder>
   <Folder Name="/tests/">
     <Project Path="tests/Mcp.ImageOptimizer.Tools.Tests/Mcp.ImageOptimizer.Tools.Tests.csproj" />

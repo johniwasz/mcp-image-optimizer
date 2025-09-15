@@ -26,6 +26,7 @@
   </ItemGroup>
 
   <ItemGroup>
+      <PackageReference Include="Microsoft.AspNetCore.Authentication.JwtBearer" />
       <PackageReference Include="Microsoft.Extensions.Hosting" />
       <PackageReference Include="ModelContextProtocol" />
       <PackageReference Include="ModelContextProtocol.AspNetCore" />
@@ -40,8 +41,12 @@
 	  <PackageReference Include="Serilog.Sinks.File" />
   </ItemGroup>
 
-  <ItemGroup>
-    <ProjectReference Include="..\Mcp.ImageOptimizer.Azure.Tools\Mcp.ImageOptimizer.Azure.Tools.csproj" />
-  </ItemGroup>
+	<ItemGroup>
+		<InternalsVisibleTo Include="Mcp.ImageOptimizer.Tools.Tests" />
+	</ItemGroup>
+
+	<ItemGroup>
+	  <ProjectReference Include="..\Mcp.ImageOptimizer.Azure.Services\Mcp.ImageOptimizer.Azure.Services.csproj" />
+	</ItemGroup>
 
 </Project>

@@ -3,52 +3,40 @@ using SixLabors.ImageSharp.PixelFormats;
 using SixLabors.ImageSharp.Processing;
 using SixLabors.ImageSharp.Drawing.Processing;
 using SixLabors.Fonts;
+using Mcp.ImageOptimizer.Common;
+using Mcp.ImageOptimizer.Stdio.Tools;
 
-namespace Mcp.ImageOptimizer.Tools.Tests
+namespace Mcp.ImageOptimizer.Tools.Tests;
+
+public class ImageConverterTests
 {
 
-    public class ImageConverterTests
+    [Fact]
+    public async Task ValidateMetadataTool_Dimensions()
     {
+        int width = 1920; // HD width
+        int height = 1080; // HD height
+        // Generate the test image
+        byte[] imageBytes = GenerateTestImage(width, height);
 
-        [Fact]
-        public async Task ValidateMetadataTool_Dimensions()
+        using (var ms = new MemoryStream(imageBytes))
         {
-            int width = 1920; // HD width
-            int height = 1080; // HD height
-            // Generate the test image
-            byte[] imageBytes = GenerateTestImage(width, height);
+            var image = await Image.LoadAsync<Rgba32>(ms);
+            Assert.Equal(width, image.Width);
+            Assert.Equal(height, image.Height);
 
-            using (var ms = new MemoryStream(imageBytes))
+            if (image.Metadata != null)
             {
-                var image = await Image.LoadAsync<Rgba32>(ms);
-                Assert.Equal(width, image.Width);
-                Assert.Equal(height, image.Height);
+                var xmlProfile = image.Metadata.ExifProfile;
 
-                if (image.Metadata != null)
+                if (image.Metadata?.ExifProfile?.Values != null)
                 {
-                    var xmlProfile = image.Metadata.ExifProfile;
+                    Console.WriteLine("EXIF Metadata:");
 
+                    // Replace all usages of image.Metadata?.ExifProfile?.Values with a null-checked version
                     if (image.Metadata?.ExifProfile?.Values != null)
                     {
-                        Console.WriteLine("EXIF Metadata:");
-
-                        // Replace all usages of image.Metadata?.ExifProfile?.Values with a null-checked version
-                        if (image.Metadata?.ExifProfile?.Values != null)
-                        {
-                            foreach (var prop in image.Metadata.ExifProfile.Values)
-                            {
-                                Console.WriteLine($"{prop.Tag}: {prop.GetValue()}");
-                            }
-                        }
-                        else
-                        {
-                            Console.WriteLine("No EXIF Metadata found.");
-                        }
-                    }
-                    var exifValues = image.Metadata?.ExifProfile?.Values;
-                    if (exifValues != null)
-                    {
-                        foreach (var prop in exifValues)
+                        foreach (var prop in image.Metadata.ExifProfile.Values)
                         {
                             Console.WriteLine($"{prop.Tag}: {prop.GetValue()}");
                         }
@@ -58,169 +46,187 @@ namespace Mcp.ImageOptimizer.Tools.Tests
                         Console.WriteLine("No EXIF Metadata found.");
                     }
                 }
-            }
-        }
-
-        private byte[] GenerateTestImage(int width, int height)
-        {
-            // Create a new image with the specified dimensions and a blue background
-            using var image = GenerateImage(width, height);
-
-            using (var ms = new MemoryStream())
-            {
-                image.SaveAsJpeg(ms);
-                return ms.ToArray();
-            }
-        }
-
-        private string GenerateTestImage(int width, int height, string fileName)
-        {
-            // Save the image to a file
-            string filePath = Path.Combine(AppContext.BaseDirectory, "TestImages", fileName);
-
-            if(!Directory.Exists(Path.GetDirectoryName(filePath)))
-            {
-                Directory.CreateDirectory(Path.GetDirectoryName(filePath)!);
-            }
-            
-            // Create a new image with the specified dimensions and a blue background
-            using (var image = GenerateImage(width, height))
-            {
-                image.SaveAsJpeg(filePath);
-            }
-            return filePath;
-        }
-
-        private Image GenerateImage(int width, int height)
-        {
-            var image = new Image<Rgba32>(width, height);
-
-            image.Mutate(ctx =>
-            {
-                ctx.Fill(Color.Blue);
-
-                // Load a font (ensure the font file exists or use a system font)
-                var fontCollection = new FontCollection();
-                fontCollection.AddSystemFonts(); // Load system fonts
-
-                var fontFam = fontCollection.Families.FirstOrDefault(x => x.Name.Equals("Arial")); // Use a common font
-                var font = fontFam.CreateFont(48, FontStyle.Bold);
-
-                // Define the text and its style
-                string text = "Sample HD Image";
-                RichTextOptions textOptions = new(font)
+                var exifValues = image.Metadata?.ExifProfile?.Values;
+                if (exifValues != null)
                 {
-                    HorizontalAlignment = HorizontalAlignment.Center,
-                    VerticalAlignment = VerticalAlignment.Center,
-                    Origin = new PointF(width / 2f, height / 2f)
-                };
+                    foreach (var prop in exifValues)
+                    {
+                        Console.WriteLine($"{prop.Tag}: {prop.GetValue()}");
+                    }
+                }
+                else
+                {
+                    Console.WriteLine("No EXIF Metadata found.");
+                }
+            }
+        }
+    }
 
-                // Draw the text in white
-                ctx.DrawText(textOptions, text, Color.White);
-            });
+    private byte[] GenerateTestImage(int width, int height)
+    {
+        // Create a new image with the specified dimensions and a blue background
+        using var image = GenerateImage(width, height);
 
-            return image;
+        using (var ms = new MemoryStream())
+        {
+            image.SaveAsJpeg(ms);
+            return ms.ToArray();
+        }
+    }
+
+    private string GenerateTestImage(int width, int height, string fileName)
+    {
+        // Save the image to a file
+        string filePath = Path.Combine(AppContext.BaseDirectory, "TestImages", fileName);
+
+        if(!Directory.Exists(Path.GetDirectoryName(filePath)))
+        {
+            Directory.CreateDirectory(Path.GetDirectoryName(filePath)!);
+        }
         
-        }
-
-        [Fact]
-        public async Task ConvertToWebP_ValidImage_ReturnsMetadataWithCorrectPath()
+        // Create a new image with the specified dimensions and a blue background
+        using (var image = GenerateImage(width, height))
         {
-            // Arrange
-            int width = 200;
-            int height = 150;
-            string testFileName = "test_webp_conversion.jpg";
-            
-            // Generate a test image
-            string testImagePath = GenerateTestImageSimple(width, height, testFileName);
-            
-            try
-            {
-                // Act
-                var result = await ImageTools.ConvertToWebP(testImagePath, 80);
-                
-                // Assert
-                Assert.NotNull(result);
-                Assert.Equal(width, result.Width);
-                Assert.Equal(height, result.Height);
-                Assert.NotNull(result.Path);
-                Assert.EndsWith(".webp", result.Path);
-                Assert.True(File.Exists(result.Path));
-                
-                // Verify the WebP file was created
-                var expectedWebPPath = Path.ChangeExtension(testImagePath, ".webp");
-                Assert.Equal(expectedWebPPath, result.Path);
-                
-                // Verify the WebP file has reasonable metadata
-                Assert.True(result.Size > 0);
-                
-                // Clean up
-                if (File.Exists(result.Path))
-                {
-                    File.Delete(result.Path);
-                }
-            }
-            finally
-            {
-                // Clean up original test image
-                if (File.Exists(testImagePath))
-                {
-                    File.Delete(testImagePath);
-                }
-            }
+            image.SaveAsJpeg(filePath);
         }
+        return filePath;
+    }
 
-        [Fact] 
-        public async Task ConvertToWebP_NonExistentFile_ThrowsFileNotFoundException()
+    private Image GenerateImage(int width, int height)
+    {
+        var image = new Image<Rgba32>(width, height);
+
+        image.Mutate(ctx =>
         {
-            // Arrange
-            string nonExistentPath = "/tmp/does_not_exist.jpg";
-            
-            // Act & Assert
-            await Assert.ThrowsAsync<FileNotFoundException>(() => 
-                ImageTools.ConvertToWebP(nonExistentPath));
-        }
+            ctx.Fill(Color.Blue);
 
-        [Fact]
-        public async Task ConvertToWebP_InvalidQuality_ThrowsArgumentOutOfRangeException()
+            // Load a font (ensure the font file exists or use a system font)
+            var fontCollection = new FontCollection();
+            fontCollection.AddSystemFonts(); // Load system fonts
+
+            var fontFam = fontCollection.Families.FirstOrDefault(x => x.Name.Equals("Arial")); // Use a common font
+            var font = fontFam.CreateFont(48, FontStyle.Bold);
+
+            // Define the text and its style
+            string text = "Sample HD Image";
+            RichTextOptions textOptions = new(font)
+            {
+                HorizontalAlignment = HorizontalAlignment.Center,
+                VerticalAlignment = VerticalAlignment.Center,
+                Origin = new PointF(width / 2f, height / 2f)
+            };
+
+            // Draw the text in white
+            ctx.DrawText(textOptions, text, Color.White);
+        });
+
+        return image;
+    
+    }
+
+    [Fact]
+    public async Task ConvertToWebP_ValidImage_ReturnsMetadataWithCorrectPath()
+    {
+        // Arrange
+        int width = 200;
+        int height = 150;
+        string testFileName = "test_webp_conversion.jpg";
+
+        IImageConversionService imageService = new ImageConversionService();
+
+        // Generate a test image
+        string testImagePath = GenerateTestImageSimple(width, height, testFileName);
+        ImageTools imageTools = new ImageTools();
+        try
         {
-            // Arrange
-            string testImagePath = GenerateTestImageSimple(100, 100, "quality_test.jpg");
+            // Act
+            var result = await imageTools.ConvertToWebPAsync(imageService, testImagePath, 80);
             
-            try
+            // Assert
+            Assert.NotNull(result);
+            Assert.Equal(width, result.Width);
+            Assert.Equal(height, result.Height);
+            Assert.NotNull(result.Path);
+            Assert.EndsWith(".webp", result.Path);
+            Assert.True(File.Exists(result.Path));
+            
+            // Verify the WebP file was created
+            var expectedWebPPath = Path.ChangeExtension(testImagePath, ".webp");
+            Assert.Equal(expectedWebPPath, result.Path);
+            
+            // Verify the WebP file has reasonable metadata
+            Assert.True(result.Size > 0);
+            
+            // Clean up
+            if (File.Exists(result.Path))
             {
-                // Act & Assert - Test quality below 0
-                await Assert.ThrowsAsync<ArgumentOutOfRangeException>(() => 
-                    ImageTools.ConvertToWebP(testImagePath, -1));
-                
-                // Act & Assert - Test quality above 100  
-                await Assert.ThrowsAsync<ArgumentOutOfRangeException>(() => 
-                    ImageTools.ConvertToWebP(testImagePath, 101));
-            }
-            finally
-            {
-                if (File.Exists(testImagePath))
-                {
-                    File.Delete(testImagePath);
-                }
+                File.Delete(result.Path);
             }
         }
-
-        private string GenerateTestImageSimple(int width, int height, string fileName)
+        finally
         {
-            // Save the image to a file in temp directory
-            string tempDir = Path.Combine(Path.GetTempPath(), "ImageOptimizerTests");
-            Directory.CreateDirectory(tempDir);
-            string filePath = Path.Combine(tempDir, fileName);
-
-            // Create a simple solid color image 
-            using (var image = new Image<Rgba32>(width, height))
+            // Clean up original test image
+            if (File.Exists(testImagePath))
             {
-                image.Mutate(ctx => ctx.Fill(Color.Blue));
-                image.SaveAsJpeg(filePath);               
+                File.Delete(testImagePath);
             }
-            return filePath;
         }
+    }
+
+    [Fact] 
+    public async Task ConvertToWebP_NonExistentFile_ThrowsFileNotFoundException()
+    {
+        IImageConversionService imageService = new ImageConversionService();
+        ImageTools imageTools = new ImageTools();
+        // Arrange
+        string nonExistentPath = "/tmp/does_not_exist.jpg";
+        
+        // Act & Assert
+        await Assert.ThrowsAsync<FileNotFoundException>(() => 
+            imageTools.ConvertToWebPAsync(imageService, nonExistentPath));
+    }
+
+    [Fact]
+    public async Task ConvertToWebP_InvalidQuality_ThrowsArgumentOutOfRangeException()
+    {
+        IImageConversionService imageService = new ImageConversionService();
+        ImageTools imageTools = new ImageTools();
+        // Arrange
+        string testImagePath = GenerateTestImageSimple(100, 100, "quality_test.jpg");
+
+        try
+        {
+            // Act & Assert - Test quality below 0
+            await Assert.ThrowsAsync<ArgumentOutOfRangeException>(() => 
+                imageTools.ConvertToWebPAsync(imageService, testImagePath, -1));
+            
+            // Act & Assert - Test quality above 100  
+            await Assert.ThrowsAsync<ArgumentOutOfRangeException>(() => 
+                imageTools.ConvertToWebPAsync(imageService, testImagePath, 101));
+        }
+        finally
+        {
+            if (File.Exists(testImagePath))
+            {
+                File.Delete(testImagePath);
+            }
+        }
+    }
+
+    private string GenerateTestImageSimple(int width, int height, string fileName)
+    {
+        // Save the image to a file in temp directory
+        string tempDir = Path.Combine(Path.GetTempPath(), "ImageOptimizerTests");
+        Directory.CreateDirectory(tempDir);
+        string filePath = Path.Combine(tempDir, fileName);
+
+        // Create a simple solid color image 
+        using (var image = new Image<Rgba32>(width, height))
+        {
+            image.Mutate(ctx => ctx.Fill(Color.Blue));
+            image.SaveAsJpeg(filePath);               
+        }
+        return filePath;
     }
 }
 
