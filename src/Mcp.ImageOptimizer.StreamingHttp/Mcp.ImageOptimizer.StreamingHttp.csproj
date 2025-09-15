@@ -26,6 +26,7 @@
   </ItemGroup>
 
   <ItemGroup>
+      <PackageReference Include="Microsoft.AspNetCore.Authentication.JwtBearer" />
       <PackageReference Include="Microsoft.Extensions.Hosting" />
       <PackageReference Include="ModelContextProtocol" />
       <PackageReference Include="ModelContextProtocol.AspNetCore" />
@@ -41,7 +42,7 @@
   </ItemGroup>
 
   <ItemGroup>
-    <ProjectReference Include="..\Mcp.ImageOptimizer.Azure.Tools\Mcp.ImageOptimizer.Azure.Tools.csproj" />
+    <ProjectReference Include="..\Mcp.ImageOptimizer.Azure.Tools\Mcp.ImageOptimizer.Azure.Services.csproj" />
   </ItemGroup>
 
 	<ItemGroup>

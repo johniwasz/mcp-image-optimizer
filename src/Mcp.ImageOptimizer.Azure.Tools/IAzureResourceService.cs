@@ -4,7 +4,7 @@ using Azure.ResourceManager.Resources;
 using Azure.ResourceManager.Storage;
 using Azure.Storage.Blobs;
 
-namespace Mcp.ImageOptimizer.Azure.Tools;
+namespace Mcp.ImageOptimizer.Azure.Services;
 
 public interface IAzureResourceService
 {

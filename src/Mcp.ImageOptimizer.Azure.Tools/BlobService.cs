@@ -6,8 +6,8 @@ using Azure.ResourceManager.Resources;
 using Azure.ResourceManager.Storage;
 using Azure.Storage.Blobs;
 using Azure.Storage.Blobs.Models;
-using Mcp.ImageOptimizer.Azure.Tools;
-using Mcp.ImageOptimizer.Azure.Tools.Models;
+using Mcp.ImageOptimizer.Azure.Services;
+using Mcp.ImageOptimizer.Azure.Services.Models;
 using Mcp.ImageOptimizer.Common;
 using Mcp.ImageOptimizer.Common.Models;
 using ModelContextProtocol.Server;
@@ -17,7 +17,7 @@ using SixLabors.ImageSharp.PixelFormats;
 using System.ComponentModel;
 using System.Globalization;
 
-namespace Mcp.ImageOptimizer.Azure.Tools;
+namespace Mcp.ImageOptimizer.Azure.Services;
 
 public class BlobService : IBlobService
 {
@@ -195,7 +195,7 @@ public class BlobService : IBlobService
                 await foreach (var blobItem in containerClient.GetBlobsAsync())
                 {
                     // Detemine if the blob is an image we can process
-                    if (!_imageService.IsLargeImageMimeType(blobItem.Properties.ContentType))
+                    if (_imageService.IsLargeImageMimeType(blobItem.Properties.ContentType))
                     {
                         var blobMem = await DownloadBlobAsync(storageAccountName, containerItem.Name, blobItem.Name, cancellationToken);
 
@@ -231,7 +231,7 @@ public class BlobService : IBlobService
                             Size = blobItem.Properties.ContentLength ?? 0
                         };
 
-                        imageMetadata.ExifData.Add("Comment", "Not an image");
+                        imageMetadata.ExifData.Add("Comment", "Not an inefficient image format");
 
                         imageInfos.Add(new ConvertedImageMetadata(imageMetadata));
                     }
@@ -243,5 +243,105 @@ public class BlobService : IBlobService
             } 
         }
         return imageInfos;
+    }
+
+    public async Task<IEnumerable<ContainerInfo>> ListDeletedImageBlobsAsync(string storageAccountName, CancellationToken cancellationToken = default)
+    {
+        var deletedImageBlobs = new List<ContainerInfo>();
+        var blobServiceClient = _azureResourceService.GetBlobServiceClient(storageAccountName);
+
+        await foreach (var containerItem in blobServiceClient.GetBlobContainersAsync(cancellationToken: cancellationToken))
+        {
+            try
+            {
+                ContainerInfo containerInfo = new(
+                    containerItem.Name,
+                    containerItem.Properties.ETag.ToString(),
+                    containerItem.Properties.LastModified);
+
+                var containerClient = blobServiceClient.GetBlobContainerClient(containerItem.Name);
+
+                List<string> blobs = new();
+
+                // List deleted blobs in the container
+                await foreach (var blobItem in containerClient.GetBlobsAsync(BlobTraits.None, BlobStates.Deleted, null, cancellationToken))
+                {
+                    // Check if the blob is an image based on its content type
+                    if (_imageService.IsLargeImageMimeType(blobItem.Properties.ContentType) && blobItem.Deleted)
+                    {
+                        blobs.Add(blobItem.Name);
+                    }
+                }
+
+                if (blobs.Count > 0)
+                {
+                    containerInfo.Blobs = blobs;
+                }
+
+                deletedImageBlobs.Add(containerInfo);
+            }
+            catch (RequestFailedException)
+            {
+                // Could not enumerate blobs for this container (permissions/network) - continue with next container
+            }
+        }
+
+        return deletedImageBlobs;
+    }
+
+    public async Task<IEnumerable<ContainerInfo>> RestoreDeletedImageBlobsAsync(string storageAccountName, CancellationToken cancellationToken = default)
+    {
+        var restoredBlobNames = new List<ContainerInfo>();
+        var blobServiceClient = _azureResourceService.GetBlobServiceClient(storageAccountName);
+
+        await foreach (var containerItem in blobServiceClient.GetBlobContainersAsync(cancellationToken: cancellationToken))
+        {
+            try
+            {
+                ContainerInfo containerInfo = new(
+                    containerItem.Name, 
+                    containerItem.Properties.ETag.ToString(), 
+                    containerItem.Properties.LastModified);
+
+                var containerClient = blobServiceClient.GetBlobContainerClient(containerItem.Name);
+
+                List<string> blobs = new();
+
+                // List deleted blobs in the container
+                await foreach (var blobItem in containerClient.GetBlobsAsync(BlobTraits.None, BlobStates.Deleted, null, cancellationToken))
+                {
+                    // Check if the blob is an image based on its content type
+                    if (_imageService.IsLargeImageMimeType(blobItem.Properties.ContentType))
+                    {
+                        if (blobItem.Deleted)
+                        {
+                            try
+                            {
+                                var blobClient = containerClient.GetBlobClient(blobItem.Name);
+                                await blobClient.UndeleteAsync(cancellationToken);
+                                blobs.Add(blobItem.Name);
+                            }
+                            catch (RequestFailedException)
+                            {
+                                // Failed to restore this specific blob - continue with others
+                            }
+                        }
+                    }
+                }
+
+                if (blobs.Count > 0)
+                {
+                    containerInfo.Blobs = blobs;
+                }
+
+                restoredBlobNames.Add(containerInfo);
+            }
+            catch (RequestFailedException)
+            {
+                // Could not enumerate blobs for this container (permissions/network) - continue with next container
+            }
+        }
+
+        return restoredBlobNames;
     }
 }

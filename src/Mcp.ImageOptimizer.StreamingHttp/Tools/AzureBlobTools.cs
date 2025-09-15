@@ -6,8 +6,8 @@ using Azure.ResourceManager.Resources;
 using Azure.ResourceManager.Storage;
 using Azure.Storage.Blobs;
 using Azure.Storage.Blobs.Models;
-using Mcp.ImageOptimizer.Azure.Tools;
-using Mcp.ImageOptimizer.Azure.Tools.Models;
+using Mcp.ImageOptimizer.Azure.Services;
+using Mcp.ImageOptimizer.Azure.Services.Models;
 using Microsoft.AspNetCore.Hosting.Server;
 using Microsoft.Extensions.Azure;
 using ModelContextProtocol;
@@ -28,14 +28,16 @@ namespace Mcp.ImageOptimizer.StreamingHttp.Tools;
 [McpServerToolType]
 internal class AzureBlobTools
 {
+
     [McpServerTool(Name = "list_storage_accounts", ReadOnly = true, Title = "List all Azure Storage Accounts")]
     [Description("Retrieves a list of Azure storage accounts, containers, and blobs in a region or subscription.")]
-    public async Task<IEnumerable<StorageAccountInfo>> ListStorageAccountsAync(
+    internal async Task<IEnumerable<StorageAccountInfo>> ListStorageAccountsAync(
         IMcpServer server,
         IAzureResourceService azureResourceService,
         RequestContext<CallToolRequestParams> context,
         [Description("Azure region")] string? region = null,
         [Description("Azure subscription")] string? subscriptionId = null,
+        [Description("Indicates if blobs should be included in the results")] bool includeBlobs = false,
         CancellationToken cancellationToken = default)
     {
         SubscriptionResource? subscriptionResource = null;
@@ -83,36 +85,41 @@ internal class AzureBlobTools
 
             try
             {
-                var blobServiceClient = azureResourceService.GetBlobServiceClient(sa.Data.Name);
 
-                List<ContainerInfo> containerInfos = [];
+                    var blobServiceClient = azureResourceService.GetBlobServiceClient(sa.Data.Name);
+
+                    List<ContainerInfo> containerInfos = [];
 
                 await foreach (var containerItem in blobServiceClient.GetBlobContainersAsync(cancellationToken: cancellationToken))
                 {
                     ContainerInfo containerInfo = new ContainerInfo(containerItem.Name, containerItem.Properties.ETag.ToString(), containerItem.Properties.LastModified);
 
-                    var blobNames = new List<string>();
-
-                    try
+                    if (includeBlobs)
                     {
-                        var containerClient = blobServiceClient.GetBlobContainerClient(containerItem.Name);
+                        var blobNames = new List<string>();
 
-                        await foreach (var blobItem in containerClient.GetBlobsAsync(cancellationToken: cancellationToken))
+                        try
                         {
-                            blobNames.Add(blobItem.Name);
-                        }
-                    }
-                    catch (RequestFailedException)
-                    {
-                        // Could not enumerate blobs for this container (permissions/network) - continue with empty list
-                    }
+                            var containerClient = blobServiceClient.GetBlobContainerClient(containerItem.Name);
 
-                    containerInfo.Blobs = blobNames;
+                            await foreach (var blobItem in containerClient.GetBlobsAsync(cancellationToken: cancellationToken))
+                            {
+                                blobNames.Add(blobItem.Name);
+                            }
+                        }
+                        catch (RequestFailedException)
+                        {
+                            // Could not enumerate blobs for this container (permissions/network) - continue with empty list
+                        }
+
+                        containerInfo.Blobs = blobNames;
+                    }
 
                     containerInfos.Add(containerInfo);
-                }
 
-                accountInfo.Containers = containerInfos;
+                    accountInfo.Containers = containerInfos;
+
+                }
             }
             catch (RequestFailedException)
             {
@@ -198,19 +205,15 @@ internal class AzureBlobTools
     [McpServerTool(Name = "shrink_blob_images", ReadOnly = false, Title = "Shrink Blob Images")]
     [Description("Convert blob images to a smaller format (WebP). The original image can be optionally deleted.")]
     public async Task<IEnumerable<ConvertedImageMetadata>> ShrinkBlobImagesAsyc(
-        IMcpServer server,
         IBlobService blobService,
         IAzureResourceService azureResourceService,
-        RequestContext<CallToolRequestParams> context,
         [Description("Azure Storage Account name")] string storageAccountName,
         [Description("Quality of the converted image from 0 to 100")] int quality = 80,
-        [Description("Indictect if the original image should be deleted")] bool deleteOriginal = false,
+        [Description("Indicate if the original image should be deleted")] bool deleteOriginal = false,
         [Description("Azure subcription id")] string? subscriptionId = null,
         CancellationToken cancellationToken = default)
     {
-        List<ConvertedImageMetadata> imageInfos = new List<ConvertedImageMetadata>();
-
-        // Authenticate using DefaultAzureCredential (supports Azure CLI, Managed Identity, environment vars, Visual Studio, etc.)
+        List<ConvertedImageMetadata> imageInfos = new();
 
         var storageAccount = await azureResourceService.GetStorageAccountResourceAsync(storageAccountName, subscriptionId, cancellationToken);
 
@@ -263,7 +266,34 @@ internal class AzureBlobTools
         return $"Long running operation completed. Duration: {duration} seconds. Steps: {steps}.";
     }
 
+    [McpServerTool(Name = "list_deleted_blob_large_images", ReadOnly = true, Title = "List Deleted Large Images")]
+    [Description("List all deleted large blob images by container. Returns container information with a list of deleted blobs per container.")]
+    public async Task<IEnumerable<ContainerInfo>> ListDeletedLargeImageBlobsAsync(
+        IBlobService blobService, 
+        [Description("Azure strorage account name")] string storageAccountName, 
+        CancellationToken cancellationToken = default)
+    {
+        if(string.IsNullOrWhiteSpace(storageAccountName))
+        {
+            throw new McpException("Storage Account Name cannot be null or empty", McpErrorCode.InvalidParams);
+        }
 
+        return await blobService.ListDeletedImageBlobsAsync(storageAccountName, cancellationToken);
+    }
 
+    [McpServerTool(Name = "restore_deleted_blob_large_images", ReadOnly = false, Title = "Restore Deleted Large Images")]
+    [Description("Restore (undelete) all deleted large blob images. Returns container information with a list of restored blobs per container.")]
+    public async Task<IEnumerable<ContainerInfo>> RestoreLargeImageDeletedBlobs(
+        IBlobService blobService,
+        [Description("Azure strorage account name")] string storageAccountName,
+        CancellationToken cancellationToken = default)
+    {
+        if (string.IsNullOrWhiteSpace(storageAccountName))
+        {
+            throw new McpException("Storage Account Name cannot be null or empty", McpErrorCode.InvalidParams);
+        }
+
+        return await blobService.RestoreDeletedImageBlobsAsync(storageAccountName, cancellationToken);
+    }
 }
 

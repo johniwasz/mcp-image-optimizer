@@ -1,5 +1,5 @@
 ﻿
-namespace Mcp.ImageOptimizer.Azure.Tools.Models;
+namespace Mcp.ImageOptimizer.Azure.Services.Models;
 
 public class ContainerInfo
 {

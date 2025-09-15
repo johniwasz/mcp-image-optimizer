@@ -13,7 +13,7 @@ using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
 
-namespace Mcp.ImageOptimizer.Azure.Tools;
+namespace Mcp.ImageOptimizer.Azure.Services;
 
 public class AzureResourceService : IAzureResourceService
 {

@@ -1,13 +1,13 @@
 ﻿using Azure.Storage.Blobs;
 using Azure.Storage.Blobs.Models;
-using Mcp.ImageOptimizer.Azure.Tools;
+using Mcp.ImageOptimizer.Azure.Services;
 using Mcp.ImageOptimizer.Common;
 using System;
 using System.Collections.Generic;
 using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
-using Mcp.ImageOptimizer.Azure.Tools.Models;
+using Mcp.ImageOptimizer.Azure.Services.Models;
 
 namespace Mcp.ImageOptimizer.Tools;
 
@@ -23,6 +23,16 @@ public class BlobServiceTests
         IBlobService blobService = new BlobService(azureService, imageService);
 
         var accounts = await blobService.ListStorageAccountsAsync();
+    }
+
+    [Fact]
+    public async Task GetDeletedImagesAsync()
+    {
+        IAzureResourceService azureService = new AzureResourceService();
+        IImageConversionService imageService = new ImageConversionService();
+        IBlobService blobService = new BlobService(azureService, imageService);
+
+        var deletedImages = await blobService.ListDeletedImageBlobsAsync("mcpcorplogos");
     }
 
     [Fact]
