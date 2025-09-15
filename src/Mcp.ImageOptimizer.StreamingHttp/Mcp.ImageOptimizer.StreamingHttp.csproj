@@ -41,12 +41,12 @@
 	  <PackageReference Include="Serilog.Sinks.File" />
   </ItemGroup>
 
-  <ItemGroup>
-    <ProjectReference Include="..\Mcp.ImageOptimizer.Azure.Tools\Mcp.ImageOptimizer.Azure.Services.csproj" />
-  </ItemGroup>
-
 	<ItemGroup>
 		<InternalsVisibleTo Include="Mcp.ImageOptimizer.Tools.Tests" />
+	</ItemGroup>
+
+	<ItemGroup>
+	  <ProjectReference Include="..\Mcp.ImageOptimizer.Azure.Services\Mcp.ImageOptimizer.Azure.Services.csproj" />
 	</ItemGroup>
 
 </Project>
