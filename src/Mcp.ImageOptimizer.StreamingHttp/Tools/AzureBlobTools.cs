@@ -270,7 +270,7 @@ internal class AzureBlobTools
     [Description("List all deleted large blob images by container. Returns container information with a list of deleted blobs per container.")]
     public async Task<IEnumerable<ContainerInfo>> ListDeletedLargeImageBlobsAsync(
         IBlobService blobService, 
-        [Description("Azure strorage account name")] string storageAccountName, 
+        [Description("Azure storage account name")] string storageAccountName, 
         CancellationToken cancellationToken = default)
     {
         if(string.IsNullOrWhiteSpace(storageAccountName))
@@ -285,7 +285,7 @@ internal class AzureBlobTools
     [Description("Restore (undelete) all deleted large blob images. Returns container information with a list of restored blobs per container.")]
     public async Task<IEnumerable<ContainerInfo>> RestoreLargeImageDeletedBlobs(
         IBlobService blobService,
-        [Description("Azure strorage account name")] string storageAccountName,
+        [Description("Azure storage account name")] string storageAccountName,
         CancellationToken cancellationToken = default)
     {
         if (string.IsNullOrWhiteSpace(storageAccountName))
