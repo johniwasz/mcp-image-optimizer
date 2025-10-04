@@ -22,7 +22,11 @@ namespace Mcp.ImageOptimizer.Stdio
 
             builder.Logging.AddConsole(options =>
             {
+#if DEBUG
                 options.LogToStandardErrorThreshold = LogLevel.Trace;
+#else
+                options.LogToStandardErrorThreshold = LogLevel.Warning;
+#endif
             });
 
             await builder.Build().RunAsync();
