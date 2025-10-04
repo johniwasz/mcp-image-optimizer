@@ -40,5 +40,5 @@ Optimizes image sizes for screen displays in accordance with Green Software Foun
 | [Building Your First MCP Server with .NET and Publishing to NuGet](https://devblogs.microsoft.com/dotnet/mcp-server-dotnet-nuget-quickstart/) | Publish MCP servers on Nuget |
 | [Awesome-MCP-Servers](https://github.com/punkpeye/awesome-mcp-servers) | Curated list of MCP Servers |
 | [Awesome-MCP-Clients](https://github.com/punkpeye/awesome-mcp-clients) | Curated list of MCP Clients |
-
+| [MCP Sheild](https://github.com/Jitha-afk/MCPShield) | Firewall for MCP Servers generated from a Microsoft Hackathon |
 

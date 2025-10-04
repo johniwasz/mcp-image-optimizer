@@ -1,7 +1,4 @@
-﻿using Azure.Storage.Blobs;
-using Azure.Storage.Blobs.Models;
-using Mcp.ImageOptimizer.Azure.Services.Models;
-using Mcp.ImageOptimizer.Common.Models;
+﻿using Mcp.ImageOptimizer.Azure.Services.Models;
 
 namespace Mcp.ImageOptimizer.Azure.Services;
 
