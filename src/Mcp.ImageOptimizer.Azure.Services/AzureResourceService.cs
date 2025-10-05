@@ -1,17 +1,4 @@
-﻿using Azure;
-using Azure.Core;
-using Azure.Identity;
-using Azure.ResourceManager;
-using Azure.ResourceManager.Resources;
-using Azure.ResourceManager.Storage;
-using Azure.Storage.Blobs;
-using Microsoft.Extensions.Configuration;
-using System;
-using System.Collections.Generic;
-using System.Configuration;
-using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
+﻿using System.Configuration;
 
 namespace Mcp.ImageOptimizer.Azure.Services;
 

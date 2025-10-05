@@ -21,6 +21,7 @@ using System.Reflection.Metadata;
 using System.Text;
 using System.Threading.Tasks;
 using Mcp.ImageOptimizer.Common.Models;
+using Azure;
 
 namespace Mcp.ImageOptimizer.StreamingHttp.Tools;
 

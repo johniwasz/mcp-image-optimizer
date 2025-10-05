@@ -1,21 +1,14 @@
-﻿using Azure;
-using Azure.Core;
-using Azure.Identity;
-using Azure.ResourceManager;
+﻿using Azure.ResourceManager;
 using Azure.ResourceManager.Resources;
 using Azure.ResourceManager.Storage;
 using Azure.Storage.Blobs;
 using Azure.Storage.Blobs.Models;
-using Mcp.ImageOptimizer.Azure.Services;
 using Mcp.ImageOptimizer.Azure.Services.Models;
 using Mcp.ImageOptimizer.Common;
 using Mcp.ImageOptimizer.Common.Models;
-using ModelContextProtocol.Server;
 using SixLabors.ImageSharp;
 using SixLabors.ImageSharp.Formats.Webp;
 using SixLabors.ImageSharp.PixelFormats;
-using System.ComponentModel;
-using System.Globalization;
 
 namespace Mcp.ImageOptimizer.Azure.Services;
 
