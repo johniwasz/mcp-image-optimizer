@@ -86,7 +86,7 @@ internal class AzureBlobTools
 
     [McpServerTool(Name = "shrink_blob_images", ReadOnly = false, Title = "Shrink Blob Images")]
     [Description("Convert blob images to a smaller format (WebP). The original image can be optionally deleted.")]
-    public async Task<IEnumerable<ConvertedImageMetadata>> ShrinkBlobImagesAsyc(
+    public async Task<IEnumerable<ConvertedImageMetadata>> ShrinkBlobImagesAsync(
         IBlobService blobService,
         McpServer server,
         IAzureResourceService azureResourceService,
