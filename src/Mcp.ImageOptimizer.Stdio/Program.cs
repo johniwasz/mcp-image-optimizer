@@ -1,10 +1,10 @@
 ﻿using Microsoft.Extensions.Hosting;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Logging;
-using System.Net.Http.Headers;
-using ModelContextProtocol;
 using Mcp.ImageOptimizer.Common;
 using Mcp.ImageOptimizer.Stdio.Tools;
+using Mcp.ImageOptimizer.Stdio.Prompts;
+using Mcp.ImageOptimizer.Stdio.Resources;
 
 namespace Mcp.ImageOptimizer.Stdio
 {
@@ -14,8 +14,12 @@ namespace Mcp.ImageOptimizer.Stdio
         {
             var builder = Host.CreateApplicationBuilder(args);
 
-            builder.Services.AddMcpServer()
+            builder.Services
+                .AddMcpServer()
                 .WithStdioServerTransport()
+                .WithPrompts<SimpleImagePrompts>()
+                .WithPrompts<ImageComplexPrompts>()
+                .WithResources<StaticResources>()
                 .WithTools<ImageTools>();
 
             builder.Services.AddScoped<IImageConversionService, ImageConversionService>();
