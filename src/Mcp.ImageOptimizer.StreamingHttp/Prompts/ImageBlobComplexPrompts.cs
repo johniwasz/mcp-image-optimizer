@@ -2,8 +2,6 @@
 
 using Microsoft.Identity.Client.Extensions.Msal;
 using System.Reflection.Emit;
-using static System.Reflection.Metadata.BlobBuilder;
-
 namespace Mcp.ImageOptimizer.StreamingHttp.Prompts;
 
 [McpServerPromptType]
