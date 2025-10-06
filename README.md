@@ -41,4 +41,4 @@ Optimizes image sizes for screen displays in accordance with Green Software Foun
 | [Awesome-MCP-Servers](https://github.com/punkpeye/awesome-mcp-servers) | Curated list of MCP Servers |
 | [Awesome-MCP-Clients](https://github.com/punkpeye/awesome-mcp-clients) | Curated list of MCP Clients |
 | [MCP Shield](https://github.com/Jitha-afk/MCPShield) | Firewall for MCP Servers generated from a Microsoft Hackathon |
-
+| [MCP for Beginners](https://github.com/microsoft/mcp-for-beginners) | Getting started guides in multiple languages and principles of MCP |

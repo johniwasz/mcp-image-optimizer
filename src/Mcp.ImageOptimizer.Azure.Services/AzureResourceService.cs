@@ -74,7 +74,7 @@ public class AzureResourceService : IAzureResourceService
         return retResource;
     }
 
-    public async Task<StorageAccountResource?> GetStorageAccountResourceAsync(string storageAccount, string? subscriptionId = null, CancellationToken cancellationToken = default)
+    public async Task<StorageAccountResource?> GetStorageAccountResourceAsync(string? storageAccount= null, string? subscriptionId = null, CancellationToken cancellationToken = default)
     {
         StorageAccountResource? retResource = null;
 

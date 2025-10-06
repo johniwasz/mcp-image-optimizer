@@ -10,11 +10,24 @@ using Mcp.ImageOptimizer.Common;
 
 namespace Mcp.ImageOptimizer.Stdio.Tools;
 
+/// <summary>
+/// Provides image-related tools for metadata extraction and format conversion.
+/// </summary>
 [McpServerToolType]
 internal class ImageTools
 {
-
-    [McpServerTool, Description("Get image metadata including height, width, and EXIF data if it is available.")]
+    /// <summary>
+    /// Gets image metadata including height, width, and EXIF data if available.
+    /// </summary>
+    /// <param name="imageConversionService">The image conversion service to use for metadata extraction.</param>
+    /// <param name="imageFilePath">The fully qualified path to an image file.</param>
+    /// <param name="cancellationToken">A token to monitor for cancellation requests.</param>
+    /// <returns>
+    /// An <see cref="ImageMetadata"/> object containing metadata about the image, or <c>null</c> if the file does not exist.
+    /// </returns>
+    /// <exception cref="FileNotFoundException">Thrown if the specified file does not exist.</exception>
+    [McpServerTool(ReadOnly = false, Destructive = false, Idempotent = true, Name = "get_image_metadata"), 
+        Description("Get image metadata including height, width, and EXIF data if it is available.")]
     internal async Task<ImageMetadata?> GetImageMetadataAsync(
         IImageConversionService imageConversionService,
         [Description("The fully qualified path to an image file.")] string imageFilePath,
@@ -48,8 +61,7 @@ internal class ImageTools
                             imageMetadata.ExifData[prop.Tag.ToString()] = prop?.GetValue()?.ToString() ?? string.Empty;
                         }
                     }
-                }
-            
+                }           
             }
         }
         else
@@ -60,7 +72,20 @@ internal class ImageTools
         return imageMetadata;
     }
 
-    [McpServerTool, Description("Convert an image to WebP format with configurable quality and return metadata for the new file.")]
+    /// <summary>
+    /// Converts an image to WebP format with configurable quality and returns metadata for the new file.
+    /// </summary>
+    /// <param name="imageService">The image conversion service to use for conversion and metadata extraction.</param>
+    /// <param name="imageFilePath">The fully qualified path to an image file.</param>
+    /// <param name="quality">Quality level for WebP compression (0-100, where 100 is lossless). Default is 90.</param>
+    /// <param name="cancellationToken">A token to monitor for cancellation requests.</param>
+    /// <returns>
+    /// A <see cref="ConvertedImageMetadata"/> object containing metadata about the converted WebP image.
+    /// </returns>
+    /// <exception cref="McpException">Thrown if the file does not exist or the quality parameter is invalid.</exception>
+    /// <exception cref="InvalidOperationException">Thrown if metadata retrieval for the converted file fails.</exception>
+    [McpServerTool(ReadOnly = false, Destructive = false, Idempotent = false, Name = "convert_image_to_webp"),
+        Description("Convert an image to WebP format with configurable quality and return metadata for the new file.")]
     internal async Task<ImageMetadata?> ConvertToWebPAsync(
         IImageConversionService imageService,
         [Description("The fully qualified path to an image file.")] string imageFilePath,
@@ -95,9 +120,6 @@ internal class ImageTools
             await image.SaveAsync(outputPath, encoder, cancellationToken);
         }
 
-        // Change this line:
-        // ImageMetadata imageData = await GetImageMetadata(outputPath);
-        // To the following, to handle possible null return value:
         ImageMetadata? imageData = await GetImageMetadataAsync(imageService, outputPath, cancellationToken);
         if (imageData == null)
         {
@@ -112,6 +134,4 @@ internal class ImageTools
 
         return convertedMetadata;
     }
-
-
 }

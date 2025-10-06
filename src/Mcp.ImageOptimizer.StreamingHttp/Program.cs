@@ -1,5 +1,6 @@
 using Mcp.ImageOptimizer.Azure.Services;
 using Mcp.ImageOptimizer.Common;
+using Mcp.ImageOptimizer.StreamingHttp.Prompts;
 using Mcp.ImageOptimizer.StreamingHttp.Tools;
 using Microsoft.AspNetCore.Authentication.JwtBearer;
 using Microsoft.AspNetCore.Builder;
@@ -24,7 +25,10 @@ var appRegistrationOAuthServerUrl = "https://localhost:7029";
 
 builder.Services.AddMcpServer()
     .WithHttpTransport()
-    .WithTools<AzureBlobTools>();
+    .WithPrompts<ImageBlobPrompts>()
+    .WithPrompts<ImageBlobComplexPrompts>()
+    .WithTools<AzureBlobTools>()
+    .WithTools<AzureStorageTools>();
 
 if (USE_OAUTH)
 {
