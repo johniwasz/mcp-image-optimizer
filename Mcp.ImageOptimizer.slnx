@@ -14,5 +14,7 @@
   <Folder Name="/tests/">
     <Project Path="tests/Mcp.ImageOptimizer.Tools.Tests/Mcp.ImageOptimizer.Tools.Tests.csproj" />
   </Folder>
-
+  <Folder Name="/docs/">
+    <File Path="docs/PH-DOTNET-AI-MCP-OCT2025.pdf" />
+  </Folder>
 </Solution>
