@@ -8,7 +8,7 @@ internal class AzureBlobTools
 {
     [McpServerTool(Name = "list_blob_image_metadata", ReadOnly = true, Title = "Get a list of image blob metadata")]
     [Description("Retrieves a list of Azure storage accounts, containers, and blobs in a region or subscription.")]
-    public async Task<IEnumerable<ImageMetadata>> GetBlobImageInfoAsyc(
+    public async Task<IEnumerable<ImageMetadata>> GetBlobImageInfoAsync(
            McpServer server,
            IBlobService blobService,
            IAzureResourceService azureResourceService,
@@ -86,7 +86,7 @@ internal class AzureBlobTools
 
     [McpServerTool(Name = "shrink_blob_images", ReadOnly = false, Title = "Shrink Blob Images")]
     [Description("Convert blob images to a smaller format (WebP). The original image can be optionally deleted.")]
-    public async Task<IEnumerable<ConvertedImageMetadata>> ShrinkBlobImagesAsyc(
+    public async Task<IEnumerable<ConvertedImageMetadata>> ShrinkBlobImagesAsync(
         IBlobService blobService,
         McpServer server,
         IAzureResourceService azureResourceService,
