@@ -8,7 +8,7 @@ This repo includes two Model Context Protocol servers inspired by [Green Softwar
 - [Cloud](https://patterns.greensoftware.foundation/catalog/cloud/)
 - [Web](https://patterns.greensoftware.foundation/catalog/web/)
 
-Some rules are easier to programmatically enforce than others. [Encryping what is necessary](https://patterns.greensoftware.foundation/catalog/cloud/encrypt-what-is-necessary) requires business knowledge that's suitable for an agent grounded on architecture documentation and business rules, but doesn't lend itself to a Model Context Protocol Server. 
+Some rules are easier to programmatically enforce than others. [Encrypting what is necessary](https://patterns.greensoftware.foundation/catalog/cloud/encrypt-what-is-necessary) requires business knowledge that's suitable for an agent grounded on architecture documentation and business rules, but doesn't lend itself to a Model Context Protocol Server. 
 
 MCP servers extend the native capabilities of the LLM with a REST-like service. The two examples in this repo are inspired by the [Serve images in modern formats](https://patterns.greensoftware.foundation/catalog/web/serve-images-in-modern-formats) Green Sofware pattern. 
 
