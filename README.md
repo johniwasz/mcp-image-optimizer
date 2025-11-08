@@ -48,7 +48,7 @@ This MCP configuration compiles and launches the Mcp.ImageOptimizer.Stdio server
 ```
 ### Mcp.ImageOptimizer.StreamingHttp
 
-Uses Kestrel to host a [Streamable HTTP](https://modelcontextprotocol.io/specification/2025-06-18/basic/transports#streamable-http) MCP server. Uses cached Azure credentials to identify Azure Blob containers. Blob images are identified using the MIME type and converted to WebP. Authentication is managed using an Entra app registration. This is not a recommended approach for a production application. Ideally, OAuth or Entra should be used for authenication (see [MCP Entra Examples](https://github.com/Azure-Samples/mcp-auth-servers?tab=readme-ov-file)). This app registration uses a trusted-subsystem model and leads to an overprivileged service.
+Uses Kestrel to host a [Streamable HTTP](https://modelcontextprotocol.io/specification/2025-06-18/basic/transports#streamable-http) MCP server. Uses cached Azure credentials to identify Azure Blob containers. Blob images are identified using the MIME type and converted to WebP. Authentication is managed using an Entra app registration. This is not a recommended approach for a production application. Ideally, OAuth or Entra should be used for authentication (see [MCP Entra Examples](https://github.com/Azure-Samples/mcp-auth-servers?tab=readme-ov-file)). This app registration uses a trusted-subsystem model and leads to an overprivileged service.
 
 | Project Name | Type | Description |
 | --- | --- | --- |
