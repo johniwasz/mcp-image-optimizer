@@ -22,7 +22,7 @@ Designed to run locally in Visual Studio Code using [stdio](https://modelcontext
 
 | Project Name | Type | Description | Purpose |
 | --- | --- | --- | --- |
-Mcp.ImageOptimizer.Stdio | Executable (Console) |	MCP server using stdio transport for local image optimization	|	Provides MCP tools and resources for image metadata extraction and WebP conversion via standard input/output. Includes prompts and resources for local file system operations. |
+| Mcp.ImageOptimizer.Stdio | Executable (Console) |	MCP server using stdio transport for local image optimization	|	Provides MCP tools and resources for image metadata extraction and WebP conversion via standard input/output. Includes prompts and resources for local file system operations. |
 
 #### stdio Configuration for local testing
 
