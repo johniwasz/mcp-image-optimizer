@@ -10,7 +10,7 @@ This repo includes two Model Context Protocol servers inspired by [Green Softwar
 
 Some rules are easier to programmatically enforce than others. [Encrypting what is necessary](https://patterns.greensoftware.foundation/catalog/cloud/encrypt-what-is-necessary) requires business knowledge that's suitable for an agent grounded on architecture documentation and business rules, but doesn't lend itself to a Model Context Protocol Server. 
 
-MCP servers extend the native capabilities of the LLM with a REST-like service. The two examples in this repo are inspired by the [Serve images in modern formats](https://patterns.greensoftware.foundation/catalog/web/serve-images-in-modern-formats) Green Sofware pattern. 
+MCP servers extend the native capabilities of the LLM with a REST-like service. The two examples in this repo are inspired by the [Serve images in modern formats](https://patterns.greensoftware.foundation/catalog/web/serve-images-in-modern-formats) Green Software pattern. 
 
 The goal of the two MCP servers is to search for PNG, JPG, and GIF and converts them to [WebP](https://developers.google.com/speed/webp) using [SixLabors.ImageSharp](https://www.nuget.org/packages/SixLabors.ImageSharp). 
 
