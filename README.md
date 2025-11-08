@@ -52,7 +52,7 @@ Uses Kestrel to host a [Streamable HTTP](https://modelcontextprotocol.io/specifi
 
 | Project Name | Type | Description |
 | --- | --- | --- |
-| Mcp.ImageOptimizer.StreamingHttp | Executable (Web/Console) |	MCP server using HTTP transport to access for Azure Blob operations and perform image conversion. |
+| Mcp.ImageOptimizer.StreamingHttp | Executable (Web/Console) |	MCP server using HTTP transport for Azure Blob operations and to perform image conversion. |
 | Mcp.ImageOptimizer.Azure.Services | Class Library	|	Azure-specific services for blob and resource management. Implements IBlobService and IAzureResourceService for interacting with Azure Storage Accounts, managing blob images, and handling Azure authentication (DefaultAzureCredential, ClientSecretCredential). |
 
 #### Streamable HTTP configuration
