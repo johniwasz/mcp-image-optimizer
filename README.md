@@ -2,7 +2,7 @@
 
 This repo includes two Model Context Protocol servers inspired by [Green Software Patterns](https://patterns.greensoftware.foundation/). Rather than another simple weather api MCP server, I wanted to generate two examples that would resonate with a realistic use case.
 
-[Green Software Patterns](https://patterns.greensoftware.foundation/) provide guidance to reduce the carbon footprint brokend down into three categories:
+[Green Software Patterns](https://patterns.greensoftware.foundation/) provide guidance to reduce the carbon footprint broken down into three categories:
 
 - [Artificial Intelligence (AI)](https://patterns.greensoftware.foundation/catalog/ai/)
 - [Cloud](https://patterns.greensoftware.foundation/catalog/cloud/)
